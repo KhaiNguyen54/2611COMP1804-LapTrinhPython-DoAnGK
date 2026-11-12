@@ -1,7 +1,7 @@
 \chapter{Giới thiệu}
 
 \section{Bối cảnh và mục tiêu phân tích}
-Đề tài 8 của môn Lập trình Python là \emph{Ứng dụng dự đoán giá bằng Machine Learning}: xây dựng một ứng dụng nhận các thuộc tính của một bất động sản và trả về mức giá dự đoán. Dự án này chọn bài toán dự đoán giá nhà ở Melbourne (Úc) trên một bộ dữ liệu giao dịch thật gồm 13,580 căn nhà đã bán trong giai đoạn từ 28/01/2016 đến 23/09/2017.
+Đề tài được chọn của môn Lập trình Python là \emph{Ứng dụng dự đoán giá bằng Machine Learning}: xây dựng một ứng dụng nhận các thuộc tính của một bất động sản và trả về mức giá dự đoán. Dự án này chọn bài toán dự đoán giá nhà ở Melbourne (Úc) trên một bộ dữ liệu giao dịch thật gồm 13,580 căn nhà đã bán trong giai đoạn từ 28/01/2016 đến 23/09/2017.
 
 Một mô hình dự đoán chỉ đáng tin khi người xây dựng hiểu rõ dữ liệu đầu vào: dữ liệu đến từ đâu, thiếu và sai ở chỗ nào, yếu tố nào thật sự gắn với giá và dữ liệu có đủ đại diện cho tình huống sử dụng hay không. Báo cáo này trình bày phần việc đó, tức giai đoạn \emph{dữ liệu} của dự án, theo trình tự: nguồn dữ liệu, kiểm tra và làm sạch, phân tích thống kê, trực quan hóa và kết luận. Các kết luận cuối cùng được chuyển thành hàm ý cho bước mô hình hóa.
 
@@ -15,7 +15,7 @@ Các mục tiêu cụ thể của báo cáo:
 \end{enumerate}
 
 \section{Phạm vi và câu hỏi phân tích đặt ra}
-\paragraph{Phạm vi.} Báo cáo chỉ xử lý một tệp dữ liệu duy nhất, \texttt{data/melb\_data.csv}, và chỉ dùng thông tin có trong tệp đó. Phần phân tích mô tả dữ liệu; báo cáo không đưa ra kết luận về thị trường bất động sản ngoài giai đoạn và khu vực mà dữ liệu bao phủ. Việc huấn luyện, đánh giá mô hình và xây dựng ứng dụng nằm ngoài phạm vi báo cáo này; các phần đó được ghi trong thư mục \texttt{docs/} và tệp \texttt{ml\_pipeline/PIPELINE.md}.
+\paragraph{Phạm vi.} Báo cáo chỉ xử lý một tệp dữ liệu duy nhất, \texttt{data/melb\_data.csv}, và chỉ dùng thông tin có trong tệp đó. Phần phân tích mô tả dữ liệu; báo cáo không đưa ra kết luận về thị trường bất động sản ngoài giai đoạn và khu vực mà dữ liệu bao phủ.
 
 \paragraph{Câu hỏi phân tích.} Toàn bộ báo cáo xoay quanh sáu câu hỏi sau:
 \begin{description}[leftmargin=2.2em,style=sameline,nosep]
@@ -42,10 +42,9 @@ NumPy & Tính toán số, biến đổi log của giá, \texttt{log1p} cho diệ
 Pandas & Đọc CSV, kiểm tra kiểu và dữ liệu thiếu, \texttt{groupby}, \texttt{pivot\_table}, \texttt{cut}, gom theo quý & \texttt{analysis.py}, \texttt{features.py} \\
 scikit-learn & Bộ tiền xử lý dùng chung (\texttt{ColumnTransformer}, \texttt{SimpleImputer}, \texttt{StandardScaler}, \texttt{OneHotEncoder}, \texttt{TargetEncoder}); các mô hình hồi quy ở bước sau & \texttt{features.py}, \texttt{train\_model.py} \\
 Matplotlib, Seaborn & Mọi biểu đồ trong báo cáo và notebook & \texttt{analysis.py}, \texttt{report/make\_figures.py} \\
-Streamlit & Giao diện web hiển thị lại kết quả phân tích (không phải trọng tâm của báo cáo) & \texttt{app.py} \\
 marimo, Jupyter & Notebook tái lập các bước xử lý (marimo) và notebook nộp bài & \texttt{ml\_pipeline/} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Dự án dùng Matplotlib và Seaborn thay cho Plotly để mọi biểu đồ dùng chung một đoạn mã vẽ (\texttt{analysis.py}), nhờ đó hình trong báo cáo và notebook nhất quán với nhau.
+Dự án dùng Matplotlib và Seaborn để mọi biểu đồ dùng chung một đoạn mã vẽ (\texttt{analysis.py}), nhờ đó hình trong báo cáo và notebook nhất quán với nhau.
