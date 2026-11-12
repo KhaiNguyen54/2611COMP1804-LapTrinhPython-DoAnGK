@@ -1,0 +1,159 @@
+\chapter{Bảng đầy đủ quy tắc làm sạch}\label{pl:quytac}
+
+\section*{A.1. Bảy quy tắc và đoạn mã tương ứng}
+Mã nguồn dưới đây là hàm \texttt{clean()} trong \texttt{ml\_pipeline/features.py}. Các quy tắc không dùng thống kê của tập dữ liệu nào, nên áp dụng giống hệt cho dữ liệu huấn luyện và dữ liệu nhập từ giao diện.
+
+\begin{table}[H]
+\centering
+\caption{Quy tắc làm sạch, câu lệnh, lý do và số dòng bị ảnh hưởng}\label{tab:quytac-day-du}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}c L{4.6cm} L{4.8cm} L{2.7cm} r@{}}
+\toprule
+\# & Câu lệnh & Lý do & Hành động & Số dòng \\
+\midrule
+1 & \texttt{YearBuilt < 1800} & Năm nhỏ nhất là 1196, không thể có & Đặt thành thiếu & 1 \\
+2 & \texttt{Landsize == 0} & Đất 0 m\textsuperscript{2} nghĩa là không có số liệu, nhất là căn hộ (1,629 trong 1,939 dòng) & Đặt thành thiếu & 1,939 \\
+3 & \texttt{Landsize > 100000} & 433,014 m\textsuperscript{2} phi thực tế cho một căn nhà & Đặt thành thiếu & 1 \\
+4 & \texttt{BuildingArea == 0} & Diện tích xây bằng 0 không hợp lý & Đặt thành thiếu & 17 \\
+5 & \texttt{BuildingArea > 10000} & 44,515 m\textsuperscript{2}, ngoại lai phi thực tế & Đặt thành thiếu & 1 \\
+6 & \texttt{Bathroom == 0} & Nhà ở bán không thể không có phòng tắm & Đặt thành thiếu & 34 \\
+7 & \texttt{CouncilArea} thiếu & Giữ ``không biết'' thành một nhóm riêng thay vì bỏ dòng & Điền ``Unknown'' & 1,369 \\
+\midrule
+ & \multicolumn{2}{l}{Tổng số dòng bị xóa} & & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{lstlisting}
+def clean(df):
+    d = df.copy()
+    d["Date"] = pd.to_datetime(d["Date"], format="%d/%m/%Y", errors="coerce")
+    d.loc[d["YearBuilt"] < 1800, "YearBuilt"] = np.nan  # 1
+    d.loc[d["Landsize"] == 0, "Landsize"] = np.nan  # 2
+    d.loc[d["Landsize"] > 100_000, "Landsize"] = np.nan  # 3
+    d.loc[d["BuildingArea"] == 0, "BuildingArea"] = np.nan  # 4
+    d.loc[d["BuildingArea"] > 10_000, "BuildingArea"] = np.nan  # 5
+    d.loc[d["Bathroom"] == 0, "Bathroom"] = np.nan  # 6
+    d["CouncilArea"] = d["CouncilArea"].fillna("Unknown")  # 7
+    return d
+\end{lstlisting}
+Số ở cuối mỗi dòng chú thích khớp với cột \# của Bảng~\ref{tab:quytac-day-du}. Dòng đầu tiên chỉ đổi cột \texttt{Date} từ chuỗi sang kiểu ngày khi cột này còn là chuỗi.
+
+\section*{A.2. Số ô thiếu trước và sau làm sạch}
+Làm sạch chuyển giá trị không hợp lệ thành thiếu nên số ô thiếu thay đổi như Bảng~\ref{tab:thieu-truoc-sau}. Cột \texttt{HouseAge} là biến dẫn xuất (năm bán trừ \texttt{YearBuilt}) nên không có trong tệp gốc.
+
+\begin{table}[H]
+\centering
+\caption{Số ô thiếu trước và sau làm sạch (13,580 dòng)}\label{tab:thieu-truoc-sau}
+\small
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+Cột & Trước & Sau & Thay đổi \\
+\midrule
+\texttt{Landsize} & 0 & 1,940 & +1,940 (quy tắc 2 và 3) \\
+\texttt{BuildingArea} & 6,450 & 6,468 & +18 (quy tắc 4 và 5) \\
+\texttt{YearBuilt} & 5,375 & 5,376 & +1 (quy tắc 1) \\
+\texttt{Bathroom} & 0 & 34 & +34 (quy tắc 6) \\
+\texttt{Car} & 62 & 62 & không đổi \\
+\texttt{CouncilArea} & 1,369 & 0 & $-$1,369 (quy tắc 7) \\
+\texttt{HouseAge} (dẫn xuất) & --- & 5,382 & 5,376 từ \texttt{YearBuilt} thiếu, thêm 6 dòng tuổi nhà âm \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{A.3. Biến dẫn xuất và cột bị loại}
+Hàm \texttt{engineer()} thêm hai biến chỉ dựa trên chính dòng đó (không dùng thống kê của tập nào):
+\begin{itemize}[nosep]
+  \item \texttt{SaleMonth}: tháng bán, lấy từ cột \texttt{Date};
+  \item \texttt{HouseAge}: năm bán trừ \texttt{YearBuilt}; giá trị âm (6 dòng có năm xây sau ngày bán) được đặt thành thiếu.
+\end{itemize}
+Năm cột bị loại khỏi mô hình (\texttt{DROP\_COLS}): \texttt{Address} (gần như định danh), \texttt{Bedroom2} (trùng \texttt{Rooms} ở 95\% số dòng), \texttt{Method} và \texttt{SellerG} (chỉ biết sau khi bán, nghi rò rỉ) và \texttt{Postcode} (trùng thông tin suburb). Lý do chi tiết ở mục~\ref{sec:hamy}. Các cột này vẫn được giữ trong dữ liệu để phân tích và hiển thị; chỉ không đưa vào mô hình.
+
+
+\chapter{Ánh xạ tiêu chí nghiệm thu mục 1 đến 3 với vị trí trong báo cáo}\label{pl:anhxa}
+
+Bảng~\ref{tab:anhxa} đối chiếu từng tiêu chí đạt ở mục 1 đến 3 của \texttt{docs/01\_QuyTac\_YeuCau.md} với nơi tiêu chí được đáp ứng trong báo cáo, để kiểm tra trước khi nộp. Cột trạng thái nêu thẳng các điểm còn thiếu.
+
+\begin{longtable}{@{}L{0.9cm} L{5.2cm} L{3.6cm} L{4.2cm}@{}}
+\caption{Đối chiếu tiêu chí nghiệm thu với vị trí trong báo cáo}\label{tab:anhxa}\\
+\toprule
+Mục & Tiêu chí đạt (rút gọn) & Vị trí trong báo cáo & Trạng thái \\
+\midrule
+\endfirsthead
+\toprule
+Mục & Tiêu chí đạt (rút gọn) & Vị trí trong báo cáo & Trạng thái \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{\emph{Còn tiếp ở trang sau}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{4}{@{}l}{\textbf{Mục 1. Dữ liệu}} \\
+1.1 & Mục ``Nguồn dữ liệu'': tên, nơi lấy, giấy phép, ngày tải, cách thu thập, số bản ghi và thuộc tính, ý nghĩa cột chính & Mục~\ref{sec:nguon} (Bảng~\ref{tab:nguon}), mục~\ref{sec:quymo} (Bảng~\ref{tab:quymo}), mục~\ref{sec:tudien} (Bảng~\ref{tab:tudien}) & Đủ: tên, nơi lấy, quy mô, ý nghĩa cột. Còn thiếu: giấy phép, ngày tải, cách thu thập gốc \\
+1.2 & Dữ liệu thô giữ nguyên trong \texttt{data/}, mọi biến đổi qua mã & Mục~\ref{sec:nguyenven} & Đạt \\
+1.3 & Tối thiểu khoảng 500 bản ghi và 5 thuộc tính & Mục~\ref{sec:quymo} (13,580 bản ghi, 21 thuộc tính) & Đạt \\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Mục 2. Xử lý dữ liệu}} \\
+2.1 & Kiểm tra kiểu dữ liệu, dữ liệu thiếu, trùng lặp, giá trị lỗi, kèm số liệu & Mục~\ref{sec:kiemtra} (Bảng~\ref{tab:kiemtra}, \ref{tab:loi}) & Đạt \\
+2.2 & Mỗi quy tắc làm sạch ghi số dòng bị ảnh hưởng; không xóa dòng khi chưa nêu lý do & Mục~\ref{sec:quytac} (Bảng~\ref{tab:quytac}), Phụ lục~\ref{pl:quytac} & Đạt (0 dòng bị xóa) \\
+2.3 & Dùng \texttt{groupby}, lọc, sắp xếp hoặc tổng hợp & Mục~\ref{sec:groupby}, Phép 3 (lọc suburb từ 30 giao dịch rồi sắp xếp), Phép 7, 9 & Đạt \\
+2.4 & Tiền xử lý dùng chung giữa huấn luyện và giao diện, một nguồn \texttt{features.py} & Mục~\ref{sec:dungchung} (Hình~\ref{fig:dungchung}) & Đạt \\
+2.5 & Thống kê điền, chuẩn hóa, mã hóa chỉ học từ tập train & Mục~\ref{sec:thieu}, mục~\ref{sec:chia} & Đạt \\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Mục 3. Phân tích và trực quan hóa}} \\
+3.1 & Ít nhất 5 phép phân tích, mỗi phép có mục đích, phương pháp, kết quả, diễn giải & Chương~\ref{ch:phantich} (9 phép) & Đạt \\
+3.2 & Ít nhất 4 biểu đồ thuộc ít nhất 3 dạng & Mục~\ref{sec:bieudo} (7 biểu đồ, 6 dạng) & Đạt \\
+3.3 & Ít nhất 3 nhận xét có ý nghĩa, mỗi nhận xét dẫn số liệu & Mục~\ref{sec:nhanxet} (7 nhận xét) & Đạt \\
+3.4 & Biểu đồ có tiêu đề, nhãn trục, đơn vị & Mục~\ref{sec:nguyentac}, \ref{sec:bieudo} & Đạt; ở heatmap hai trục là tên thuộc tính nên không có đơn vị \\
+3.5 & Phần phân tích hiển thị được trong ứng dụng & Mục~\ref{sec:streamlit} (tab Phân tích dữ liệu) & Chức năng đạt. Còn thiếu: hai ảnh chụp màn hình thật (Hình~\ref{fig:app-tongquan}, \ref{fig:app-bieudo} đang là khung giữ chỗ) \\
+3.6 & Notebook theo luồng Dataset $\to$ Data Cleaning $\to$ Analysis $\to$ Visualization $\to$ Conclusions & Notebook phân tích trong \texttt{ml\_pipeline/} (mục 1--7); báo cáo theo cùng thứ tự: Chương~\ref{ch:nguon} đến~\ref{ch:ketluan} & Đạt; notebook có thêm mục mô hình trước phần kết luận \\
+\end{longtable}
+
+Trước khi nộp bài, cần bổ sung thông tin bìa (trường, khoa, họ tên, mã số sinh viên, giảng viên hướng dẫn trong \texttt{main.tex}), giấy phép, ngày tải và cách thu thập gốc của bộ dữ liệu (Chương~\ref{ch:nguon}), cùng hai ảnh chụp màn hình.
+
+
+\chapter{Hướng dẫn tái lập kết quả}\label{pl:taile}
+
+Các lệnh dưới đây bắt đầu từ thư mục gốc của kho mã (repo) và ghi rõ khi cần chuyển thư mục. Dữ liệu thô nằm ở \texttt{data/melb\_data.csv}; không cần tải thêm gì.
+
+\section*{C.1. Cài đặt}
+Cần Python 3 và các thư viện trong \texttt{requirements.txt}:
+\begin{lstlisting}[language=bash]
+cd ml_pipeline
+pip install -r requirements.txt
+\end{lstlisting}
+
+\section*{C.2. Chạy notebook phân tích}
+Notebook là \texttt{ml\_pipeline/Housing\_Price\_Analysis.ipynb}. Gói Jupyter không nằm trong \texttt{requirements.txt} nên cài thêm. Notebook đọc dữ liệu bằng đường dẫn tương đối \texttt{../data/melb\_data.csv}, vì vậy phải mở từ thư mục \texttt{ml\_pipeline}:
+\begin{lstlisting}[language=bash]
+pip install notebook
+cd ml_pipeline
+jupyter notebook Housing_Price_Analysis.ipynb
+\end{lstlisting}
+Trong Jupyter chọn \emph{Run All} để chạy toàn bộ các ô. Hai bước đầu của notebook cũng có dạng chương trình riêng trong \texttt{ml\_pipeline/}: \texttt{01\_eda.py} (kiểm tra và khám phá dữ liệu) và \texttt{02\_prep.py} (làm sạch, chia theo thời gian, tiền xử lý), chạy bằng \texttt{python} như một tệp thông thường.
+
+\section*{C.3. Chạy ứng dụng (tùy chọn)}
+Tab \emph{Phân tích dữ liệu} của ứng dụng hiển thị lại các kết quả của báo cáo và dùng được ngay, không cần đăng nhập hay cơ sở dữ liệu:
+\begin{lstlisting}[language=bash]
+cd ml_pipeline
+streamlit run app.py
+\end{lstlisting}
+Phần đăng nhập, cơ sở dữ liệu và triển khai bằng Docker không thuộc phạm vi báo cáo này; cách chạy xem trong \texttt{README.md}.
+
+\section*{C.4. Chạy kiểm thử}
+\begin{lstlisting}[language=bash]
+cd ml_pipeline
+python -m pytest -q
+\end{lstlisting}
+
+\section*{C.5. Biên dịch báo cáo}
+Cần bản TeX có \texttt{xelatex} cùng gói \texttt{polyglossia} (tiếng Việt) và phông TeX Gyre (Termes, Heros, Cursor); trên Overleaf chọn trình biên dịch XeLaTeX. Hình được sinh lại từ dữ liệu thật bằng \texttt{make\_figures.py}, sau đó biên dịch hai lần để mục lục, danh mục hình và danh mục bảng cập nhật đúng (thỉnh thoảng cần lần thứ ba):
+\begin{lstlisting}[language=bash]
+cd report
+python make_figures.py
+xelatex main.tex
+xelatex main.tex
+\end{lstlisting}
+Để chèn ảnh chụp màn hình thật, lưu hai tệp \texttt{tab-phan-tich-tong-quan.png} và \texttt{tab-phan-tich-bieu-do.png} vào \texttt{report/screenshots/} rồi biên dịch lại; thông tin bìa sửa ở đầu \texttt{main.tex}.

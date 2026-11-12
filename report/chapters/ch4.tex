@@ -1,0 +1,328 @@
+\chapter{Phân tích thống kê}\label{ch:phantich}
+
+Chương này trình bày chín phép phân tích thống kê trên dữ liệu đã làm sạch (13,580 dòng). Mỗi phép gồm bốn phần: \emph{mục đích}, \emph{phương pháp}, \emph{kết quả} (có số liệu) và \emph{diễn giải}. Các phép được nhóm theo năm mục: thống kê mô tả (4.1), nhóm theo loại nhà, vùng, suburb và thời gian (4.2), tương quan (4.3), xu hướng theo thời gian (4.4) và so sánh các phân khúc (4.5). Các con số được tính bằng các hàm trong \texttt{ml\_pipeline/analysis.py}, chính là các hàm mà tab Phân tích của ứng dụng dùng, nên báo cáo và ứng dụng luôn khớp nhau. Giá tính bằng đô la Úc (AUD), giá trị danh nghĩa tại thời điểm bán.
+
+\section{Thống kê mô tả}\label{sec:mota}
+
+\subsection{Phép 1. Phân phối của giá và các thuộc tính số}\label{sec:p1}
+\paragraph{Mục đích.} Biết giá nhà tập trung ở đâu, trải rộng đến mức nào và có lệch hay không, để chọn cách biểu diễn giá phù hợp ở bước mô hình hóa.
+\paragraph{Phương pháp.} Dùng \texttt{describe()} của Pandas cho cột \texttt{Price} và các thuộc tính số, kèm các phân vị 10\%, 90\%, 99\%, độ lệch (\texttt{skew}) và hệ số biến thiên (độ lệch chuẩn chia trung bình). Cột \texttt{Landsize}, \texttt{BuildingArea}, \texttt{HouseAge} được tính sau làm sạch nên số dòng có giá trị ít hơn 13,580.
+\begin{lstlisting}
+df["Price"].describe()
+df["Price"].quantile([.1, .9, .99])
+df["Price"].skew(), np.log(df["Price"]).skew()
+\end{lstlisting}
+\paragraph{Kết quả.} Bảng~\ref{tab:mota-gia} và Bảng~\ref{tab:mota-so} tóm tắt kết quả.
+
+\begin{table}[H]
+\centering
+\caption{Thống kê mô tả của giá nhà (AUD)}\label{tab:mota-gia}
+\small
+\begin{tabular}{@{}lr lr@{}}
+\toprule
+Chỉ số & Giá trị & Chỉ số & Giá trị \\
+\midrule
+Số giao dịch & 13,580 & Phân vị 10\% & 480,000 \\
+Trung bình & 1,075,684 & Phân vị 90\% & 1,850,000 \\
+Độ lệch chuẩn & 639,311 & Phân vị 99\% & 3,338,150 \\
+Nhỏ nhất & 85,000 & Tứ phân vị Q1 & 650,000 \\
+Lớn nhất & 9,000,000 & Trung vị & 903,000 \\
+Độ lệch (skew) & 2.24 & Tứ phân vị Q3 & 1,330,000 \\
+Độ lệch của log(giá) & 0.18 & Hệ số biến thiên & 0.59 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Thống kê mô tả của các thuộc tính số sau làm sạch}\label{tab:mota-so}
+\small
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+Thuộc tính & Số dòng có giá trị & Trung bình & Trung vị & Lớn nhất \\
+\midrule
+\texttt{Rooms} & 13,580 & 2.9 & 3 & 10 \\
+\texttt{Bathroom} & 13,546 & 1.5 & 1 & 8 \\
+\texttt{Car} & 13,518 & 1.6 & 2 & 10 \\
+\texttt{Distance} (km) & 13,580 & 10.1 & 9.2 & 48.1 \\
+\texttt{Landsize} (m\textsuperscript{2}) & 11,640 & 614.3 & 533 & 76,000 \\
+\texttt{BuildingArea} (m\textsuperscript{2}) & 7,112 & 146.1 & 126 & 6,791 \\
+\texttt{HouseAge} (năm) & 8,198 & 51.8 & 47 & 186 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Giá trung bình (1,075,684) cao hơn trung vị (903,000) khoảng 19\%, và độ lệch 2.24 cho thấy phân phối lệch phải rõ rệt (Hình~\ref{fig:hist}): một số ít giao dịch rất đắt kéo trung bình lên. Hệ số biến thiên 0.59 nghĩa là độ lệch chuẩn bằng gần 60\% giá trung bình, tức giá rất phân tán; 10\% giao dịch rẻ nhất dưới 480,000 còn 10\% đắt nhất trên 1,850,000, chênh nhau gần 3.9 lần. Vì vậy trung vị là thước đo tâm phù hợp hơn trung bình, và các so sánh trong chương này chủ yếu dùng trung vị. Lấy logarit làm độ lệch giảm từ 2.24 xuống 0.18, gần đối xứng, đây là lý do mô hình dự đoán log của giá. Các thuộc tính diện tích cũng lệch phải (trung bình lớn hơn trung vị, giá trị lớn nhất gấp hàng chục lần trung vị), nên được biến đổi bằng \texttt{log1p} ở bước tiền xử lý.
+
+\section{Nhóm theo loại nhà, vùng, suburb và thời gian}\label{sec:groupby}
+Các phép trong mục này đều dùng \texttt{groupby} kết hợp lọc và sắp xếp, được gói trong hàm \texttt{stats\_by()} của \texttt{analysis.py}:
+\begin{lstlisting}
+def stats_by(df, col, sort_desc=True):
+    t = df.groupby(col, observed=True)["Price"].agg(
+        so_giao_dich="count", gia_trung_vi="median", gia_trung_binh="mean").round(0)
+    return t.sort_values("gia_trung_vi", ascending=not sort_desc)
+\end{lstlisting}
+
+\subsection{Phép 2. Giá theo loại nhà}\label{sec:p2}
+\paragraph{Mục đích.} Đo mức chênh giá giữa nhà riêng, nhà liền kề và căn hộ, và xem loại nhà có phải yếu tố lớn của giá không.
+\paragraph{Phương pháp.} \texttt{stats\_by(df, "Type")}: nhóm theo \texttt{Type}, tính số giao dịch, trung vị và trung bình; thêm hệ số biến thiên trong từng nhóm.
+\paragraph{Kết quả.} Xem Bảng~\ref{tab:loainha}.
+
+\begin{table}[H]
+\centering
+\caption{Giá theo loại nhà (AUD)}\label{tab:loainha}
+\small
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+Loại nhà & Số giao dịch & Tỷ lệ & Trung vị & Trung bình & Hệ số biến thiên \\
+\midrule
+Nhà riêng (\texttt{h}) & 9,449 & 69.6\% & 1,080,000 & 1,242,665 & 0.54 \\
+Liền kề (\texttt{t}) & 1,114 & 8.2\% & 846,750 & 933,735 & 0.42 \\
+Căn hộ (\texttt{u}) & 3,017 & 22.2\% & 560,000 & 605,127 & 0.43 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Giá trung vị của nhà riêng gấp 1.9 lần căn hộ (1,080,000 so với 560,000), nhà liền kề nằm giữa. Nhà riêng cũng có độ phân tán cao nhất (hệ số biến thiên 0.54), vì nhóm này chứa cả những căn rất đắt (tối đa 9,000,000). Trung vị của từng loại nhà cho thấy căn hộ nhỏ hơn rõ rệt (diện tích xây 75 m\textsuperscript{2}, 2 phòng) so với nhà riêng (144 m\textsuperscript{2}, 3 phòng), nhưng lại nằm gần trung tâm hơn (6.9 km so với 10.4 km). Điều này sẽ quan trọng khi đọc ảnh hưởng của khoảng cách ở Phép 8. Hình~\ref{fig:typebox} minh họa chênh lệch này.
+
+\subsection{Phép 3. Giá theo vùng và theo suburb}\label{sec:p3}
+\paragraph{Mục đích.} Xác định nơi nào đắt và rẻ, và độ chênh giữa các nơi đó lớn đến mức nào.
+\paragraph{Phương pháp.} \texttt{stats\_by(df, "Regionname")} cho 8 vùng; với suburb, lọc những suburb có ít nhất 30 giao dịch rồi sắp xếp theo trung vị (hàm \texttt{top\_suburbs()}), vì trung vị của suburb ít giao dịch dao động mạnh.
+\paragraph{Kết quả.} Bảng~\ref{tab:vung} liệt kê các vùng; Bảng~\ref{tab:suburb} liệt kê năm suburb đắt nhất và rẻ nhất. Trong 314 suburb có 125 suburb đạt ngưỡng 30 giao dịch và 59 suburb có dưới 5 giao dịch.
+
+\begin{table}[H]
+\centering
+\caption{Giá theo vùng, sắp xếp theo trung vị giảm dần (AUD)}\label{tab:vung}
+\small
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+Vùng (\texttt{Regionname}) & Số giao dịch & Trung vị & Trung bình \\
+\midrule
+Southern Metropolitan & 4,695 & 1,250,000 & 1,372,963 \\
+Eastern Metropolitan & 1,471 & 1,010,000 & 1,104,080 \\
+South-Eastern Metropolitan & 450 & 850,000 & 922,944 \\
+Northern Metropolitan & 3,890 & 806,250 & 898,171 \\
+Western Metropolitan & 2,948 & 793,000 & 866,421 \\
+Eastern Victoria & 53 & 670,000 & 699,981 \\
+Northern Victoria & 41 & 540,000 & 594,829 \\
+Western Victoria & 32 & 400,000 & 397,523 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Năm suburb đắt nhất và năm suburb rẻ nhất (chỉ xét suburb có từ 30 giao dịch)}\label{tab:suburb}
+\small
+\begin{tabular}{@{}l r r @{\hspace{1.2cm}} l r r@{}}
+\toprule
+\multicolumn{3}{c}{Đắt nhất} & \multicolumn{3}{c}{Rẻ nhất} \\
+Suburb & Số GD & Trung vị & Suburb & Số GD & Trung vị \\
+\midrule
+Albert Park & 69 & 1,900,000 & Werribee & 50 & 490,000 \\
+Canterbury & 54 & 1,890,000 & Sunbury & 38 & 496,750 \\
+Middle Park & 34 & 1,880,000 & Hoppers Crossing & 38 & 540,500 \\
+Balwyn & 107 & 1,850,000 & Melbourne & 46 & 542,500 \\
+Brighton & 186 & 1,773,500 & Craigieburn & 47 & 548,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Vùng Southern Metropolitan đắt nhất (trung vị 1,250,000), cao hơn Western Metropolitan, vùng nội đô rẻ nhất, khoảng 1.6 lần (793,000). Ba vùng thuộc bang Victoria ngoài đô thị chỉ có 32 đến 53 giao dịch mỗi vùng (tổng 126 dòng, chưa đến 1\% dữ liệu) nên các con số của chúng kém tin cậy, dù Western Victoria (400,000) rõ ràng là rẻ nhất. Ở cấp suburb, chênh lệch lớn hơn nhiều: suburb đắt nhất (Albert Park, 1,900,000) gấp 3.9 lần suburb rẻ nhất (Werribee, 490,000). Suburb là thuộc tính có rất nhiều giá trị (314) và nhiều suburb thưa dữ liệu, nên mô hình mã hóa nó bằng target encoding thay vì one-hot (Chương~\ref{ch:ketluan}). Hai suburb ở cột bên phải cho thấy hai lý do khác nhau của giá thấp: Werribee xa trung tâm (khoảng cách trung vị 14.7 km, 96\% là nhà riêng), còn ``Melbourne'' (khu trung tâm) gần trung tâm (2.8 km) nhưng 98\% giao dịch là căn hộ.
+
+\subsection{Phép 4. Giá theo năm và theo quý}\label{sec:p4}
+\paragraph{Mục đích.} Có cái nhìn đầu tiên về việc giá thay đổi thế nào theo thời gian bán.
+\paragraph{Phương pháp.} Nhóm theo năm và theo quý của cột \texttt{Date} (đoạn mã dưới đây), tính số giao dịch và trung vị.
+\begin{lstlisting}
+df.groupby(df["Date"].dt.year)["Price"].agg(["count", "median", "mean"])
+df.groupby(df["Date"].dt.to_period("Q"))["Price"].median()
+\end{lstlisting}
+\paragraph{Kết quả.} Theo năm: 2016 có 6,336 giao dịch, trung vị 900,000 và trung bình 1,072,954; 2017 (đến ngày 23/9) có 7,244 giao dịch, trung vị 910,000 và trung bình 1,078,072, tức tăng 1.1\% theo trung vị và 0.5\% theo trung bình. Theo quý xem Bảng~\ref{tab:quy}.
+
+\begin{table}[H]
+\centering
+\caption{Giá theo quý. Chỉ số điều chỉnh được giải thích ở Phép 6.}\label{tab:quy}
+\small
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+Quý & Số giao dịch & Trung vị (AUD) & Chỉ số điều chỉnh \\
+\midrule
+2016Q1 & 28 & 890,000 & (không đủ dữ liệu) \\
+2016Q2 & 1,949 & 860,000 & 0.931 \\
+2016Q3 & 2,087 & 895,000 & 0.964 \\
+2016Q4 & 2,272 & 935,000 & 0.993 \\
+2017Q1 & 1,095 & 955,000 & 1.028 \\
+2017Q2 & 2,859 & 935,000 & 1.022 \\
+2017Q3 (đến 23/9) & 3,290 & 887,750 & 1.021 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Quý 1/2016 chỉ có 28 giao dịch (tháng 1 và 2) nên bị bỏ khỏi mọi so sánh. Trong sáu quý còn lại, trung vị dao động từ 860,000 đến 955,000 (đỉnh ở 2017Q1, cao hơn đáy 11\%), không tăng đều mà đi lên rồi giảm nhẹ. Thay đổi giữa hai năm chỉ 1.1\%. Chỉ nhìn trung vị thô thì kết luận là giá gần như đi ngang, nhưng Phép 6 sẽ cho thấy cách nhìn này bị che khuất bởi sự thay đổi thành phần giao dịch.
+
+\section{Tương quan giữa các thuộc tính số và giá}\label{sec:tuongquan}
+
+\subsection{Phép 5. Hệ số tương quan Pearson và Spearman}
+\paragraph{Mục đích.} Xác định thuộc tính số nào liên hệ mạnh nhất với giá và liệu quan hệ có tuyến tính hay chỉ đơn điệu.
+\paragraph{Phương pháp.} Tính Pearson (đo quan hệ tuyến tính) và Spearman (đo quan hệ đơn điệu, dựa trên thứ hạng, ít bị ngoại lai ảnh hưởng) giữa \texttt{Price} và từng thuộc tính số, bằng \texttt{df[cols].corr()} và \texttt{corr(method="spearman")}. Pandas bỏ qua các cặp có ô thiếu, nên số cặp ở \texttt{BuildingArea} (7,112) và \texttt{HouseAge} (8,198) ít hơn ở các cột còn lại.
+\begin{lstlisting}
+cols = ["Price", "Rooms", "Bathroom", "Car", "Distance", "Landsize", "BuildingArea", "HouseAge"]
+df[cols].corr()                       # Pearson
+df[cols].corr(method="spearman")      # Spearman
+\end{lstlisting}
+\paragraph{Kết quả.} Bảng~\ref{tab:tuongquan} và Hình~\ref{fig:corr}.
+
+\begin{table}[H]
+\centering
+\caption{Tương quan của các thuộc tính số với giá (sắp xếp theo $|$Spearman$|$ giảm dần)}\label{tab:tuongquan}
+\small
+\begin{tabular}{@{}l r r@{}}
+\toprule
+Thuộc tính & Pearson & Spearman \\
+\midrule
+\texttt{BuildingArea} & 0.365 & 0.636 \\
+\texttt{Rooms} & 0.497 & 0.540 \\
+\texttt{Bathroom} & 0.469 & 0.429 \\
+\texttt{HouseAge} & 0.332 & 0.370 \\
+\texttt{Car} & 0.239 & 0.288 \\
+\texttt{Longtitude} & 0.204 & 0.262 \\
+\texttt{Lattitude} & $-$0.213 & $-$0.260 \\
+\texttt{Landsize} & 0.007 & 0.149 \\
+\texttt{Distance} & $-$0.163 & $-$0.130 \\
+\texttt{Propertycount} & $-$0.042 & $-$0.011 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Ba thuộc tính liên hệ mạnh nhất với giá là diện tích xây (Spearman 0.636), số phòng (Pearson 0.497) và số phòng tắm (0.469). Với \texttt{BuildingArea}, Spearman (0.636) lớn hơn hẳn Pearson (0.365): quan hệ đơn điệu rõ nhưng không tuyến tính và chịu ảnh hưởng của vài giá trị diện tích rất lớn; đây là lý do dùng \texttt{log1p}. \texttt{Landsize} gần như không có tương quan tuyến tính (0.007) dù Spearman là 0.149, vì diện tích đất của căn hộ thường bằng 0 hoặc thiếu, còn các lô đất rất lớn là ngoại lai. Tuổi nhà có tương quan dương (0.332), nghĩa là nhà cũ đắt hơn: đây là hệ quả của việc nhà cũ tập trung ở các suburb nội đô danh tiếng và nhà mới chủ yếu là căn hộ rẻ hơn (tương quan giữa năm xây và khoảng cách là 0.255, tức nhà xây gần đây nằm xa trung tâm hơn), không phải do tuổi tự nó làm tăng giá. \texttt{Distance} chỉ có tương quan $-$0.163, yếu hơn nhiều so với kỳ vọng; nguyên nhân nằm ở Phép 8. Các thuộc tính đầu vào cũng tương quan với nhau (số phòng và số phòng tắm 0.594, số phòng và diện tích xây 0.424), nên chúng cung cấp thông tin chồng lấn. Tương quan không chứng minh quan hệ nhân quả. Cột \texttt{YearBuilt} có tương quan đối xứng với \texttt{HouseAge} (0.332 và $-$0.332), nên không liệt kê riêng.
+
+\section{Xu hướng theo thời gian}\label{sec:xuhuong}
+
+\subsection{Phép 6. Xu hướng giá và kiểm tra ảnh hưởng của thành phần giao dịch}
+\paragraph{Mục đích.} Trả lời câu hỏi giá có tăng hay giảm trong giai đoạn dữ liệu, và kiểm tra xem điểm thấp bất thường của trung vị tháng 7/2017 (755,000) là biến động giá thật hay do cơ cấu giao dịch.
+\paragraph{Phương pháp.} Trung vị thô theo tháng và quý chịu ảnh hưởng của việc tháng đó bán nhiều nhà đắt hay rẻ. Để tách yếu tố này, mỗi giao dịch được chia cho trung vị của mọi giao dịch cùng suburb và cùng loại nhà, rồi lấy trung vị của tỷ lệ đó theo tháng hoặc quý. Giá trị này gọi là \emph{chỉ số điều chỉnh}: bằng 1 nghĩa là giá ngang mức thông thường của đúng suburb và loại nhà đó; 1.05 là cao hơn 5\%. Chỉ số chỉ dùng để mô tả (mốc tham chiếu lấy trên toàn bộ dữ liệu, không đưa vào mô hình nên không gây rò rỉ), và với các ô suburb--loại nhà ít giao dịch thì nhiễu hơn.
+\begin{lstlisting}
+ref = df.groupby(["Suburb", "Type"])["Price"].transform("median")
+df["ratio"] = df["Price"] / ref
+df.groupby(df["Date"].dt.to_period("Q"))["ratio"].median()
+\end{lstlisting}
+\paragraph{Kết quả.} Chỉ số điều chỉnh theo quý nằm ở cột cuối Bảng~\ref{tab:quy}: tăng từ 0.931 (2016Q2) lên 0.993 (2016Q4) rồi đạt 1.028, 1.022 và 1.021 trong ba quý của 2017. Với kiểm tra tháng 7/2017, Bảng~\ref{tab:thang7} so sánh ba tháng liền kề.
+
+\begin{table}[H]
+\centering
+\caption{Ba tháng 6--8/2017: trung vị thô, cơ cấu giao dịch và chỉ số điều chỉnh. ``Southern'' và ``Nhà riêng'' là tỷ lệ giao dịch ở Southern Metropolitan và tỷ lệ nhà riêng trong tháng.}\label{tab:thang7}
+\small
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+Tháng & Số GD & Trung vị thô (AUD) & Southern & Nhà riêng & Chỉ số điều chỉnh \\
+\midrule
+6/2017 & 1,098 & 916,500 & 29.5\% & 73.6\% & 1.025 \\
+7/2017 & 1,536 & 755,000 & 19.3\% & 69.9\% & 1.001 \\
+8/2017 & 834 & 1,016,750 & 30.0\% & 84.8\% & 1.046 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Hai kết luận khác nhau tùy cách nhìn. Trung vị thô theo quý gần như đi ngang (860,000 đến 955,000, không xu hướng rõ), nhưng chỉ số điều chỉnh tăng khoảng 10\% từ 2016Q2 lên 2017Q1 (0.931 $\to$ 1.028) rồi giữ ổn định quanh 1.02. Nói cách khác, có dấu hiệu giá tăng trong năm 2016 và đi ngang từ đầu 2017, còn trung vị thô bị che khuất vì cơ cấu giao dịch thay đổi (ví dụ cơ cấu suburb và loại nhà của quý 3/2017 thiên về nhóm rẻ hơn so với quý 1/2017: trung vị thô giảm 7\% trong khi chỉ số điều chỉnh gần như không đổi). Điểm trũng tháng 7/2017 chủ yếu là hiệu ứng cơ cấu: trong tháng đó tỷ lệ giao dịch ở Southern Metropolitan, vùng đắt nhất, giảm còn 19.3\% (so với khoảng 30\% hai tháng kề bên), và chỉ số điều chỉnh vẫn xấp xỉ 1.0 (bình thường), không phải giá giảm khoảng 18\% so với tháng 6. Tuy nhiên cơ cấu theo loại nhà không giải thích hết: chỉ riêng nhà riêng, trung vị tháng 7 là 847,000, thấp hơn 1,070,000 (tháng 6) và 1,150,000 (tháng 8); phần còn lại đến từ cơ cấu suburb bên trong từng vùng. Hai điều cần lưu ý: dữ liệu chỉ dài 19 tháng có giao dịch và có nhiều khoảng trống (Chương~\ref{ch:nguon}), nên không thể tách mùa vụ khỏi xu hướng; và việc giá tăng đều đến đầu 2017 rồi ổn định chỉ là mô tả, không phải dự báo. Hệ quả cho mô hình: các giao dịch mới nhất (tập test) có mặt bằng giá cao hơn các giao dịch cũ (tập train), điều mà chia theo thời gian phản ánh trung thực (mục~\ref{sec:hamy}).
+
+\section{So sánh các phân khúc}\label{sec:phankhuc}
+
+\subsection{Phép 7. Vùng kết hợp loại nhà}
+\paragraph{Mục đích.} Xem khác biệt giá giữa các vùng là của mọi loại nhà hay chỉ của một loại.
+\paragraph{Phương pháp.} Bảng chéo \texttt{pivot\_table(index="Regionname", columns="Type", values="Price", aggfunc="median")}, chỉ giữ năm vùng đô thị có đủ ba loại nhà (ba vùng Victoria ngoài đô thị có dưới 54 giao dịch mỗi vùng và thiếu một số loại nhà). Ô có ít giao dịch (liền kề 25 và căn hộ 37 ở South-Eastern Metropolitan) kém tin cậy.
+\paragraph{Kết quả.} Bảng~\ref{tab:vung-loai}.
+
+\begin{table}[H]
+\centering
+\caption{Giá trung vị theo vùng và loại nhà (AUD); số giao dịch trong ngoặc}\label{tab:vung-loai}
+\small\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+Vùng & Nhà riêng & Liền kề & Căn hộ \\
+\midrule
+Southern Metropolitan & \shortstack[r]{1,650,000\\{\scriptsize(2,721)}} & \shortstack[r]{1,130,000\\{\scriptsize(425)}} & \shortstack[r]{610,000\\{\scriptsize(1,549)}} \\
+Eastern Metropolitan & \shortstack[r]{1,120,000\\{\scriptsize(1,173)}} & \shortstack[r]{837,500\\{\scriptsize(118)}} & \shortstack[r]{630,000\\{\scriptsize(180)}} \\
+Northern Metropolitan & \shortstack[r]{920,000\\{\scriptsize(2,754)}} & \shortstack[r]{705,000\\{\scriptsize(307)}} & \shortstack[r]{496,000\\{\scriptsize(829)}} \\
+South-Eastern Metropolitan & \shortstack[r]{878,000\\{\scriptsize(388)}} & \shortstack[r]{840,000\\{\scriptsize(25)}} & \shortstack[r]{601,000\\{\scriptsize(37)}} \\
+Western Metropolitan & \shortstack[r]{869,000\\{\scriptsize(2,290)}} & \shortstack[r]{714,000\\{\scriptsize(239)}} & \shortstack[r]{460,000\\{\scriptsize(419)}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Chênh lệch giữa các vùng chủ yếu là chênh lệch của nhà riêng: nhà riêng ở Southern Metropolitan (1,650,000) gấp 1.9 lần ở Western Metropolitan (869,000), trong khi căn hộ chỉ chênh 1.3 lần (610,000 so với 460,000), và căn hộ ở Southern, Eastern và South-Eastern có giá gần nhau (601,000 đến 630,000). Southern Metropolitan còn chứa 1,549 trên 3,017 căn hộ (51\%), nên trung vị chung 1,250,000 của vùng này thực ra bị kéo xuống bởi căn hộ; nếu chỉ xét nhà riêng thì vùng này còn đắt hơn. Hệ quả: vùng và loại nhà tương tác với nhau, nên mô hình cần cả hai (one-hot cho \texttt{Type} và \texttt{Regionname}) và tốt nhất là cho phép mô hình học tương tác (mô hình dạng cây).
+
+\subsection{Phép 8. Khoảng cách đến trung tâm và số phòng}\label{sec:p8}
+\paragraph{Mục đích.} Đo ảnh hưởng của vị trí (khoảng cách đến trung tâm) và quy mô (số phòng) lên giá, và tìm hiểu vì sao tương quan giá--khoảng cách yếu (Phép 5).
+\paragraph{Phương pháp.} Chia \texttt{Distance} thành năm khoảng bằng \texttt{pd.cut} ($0$--$5$, $5$--$10$, $10$--$15$, $15$--$20$ và hơn 20 km), nhóm và lấy trung vị (hàm \texttt{stats\_by\_distance()}); sau đó lặp lại riêng cho từng loại nhà. Số phòng nhóm trực tiếp bằng \texttt{stats\_by\_rooms()}, giới hạn tối đa 6 phòng (19 dòng có từ 7 phòng bị bỏ khỏi bảng vì quá ít). Cận dưới của khoảng đầu tiên là mở, nên 6 dòng có khoảng cách bằng 0 không rơi vào khoảng nào của bảng (tổng các khoảng là 13,574).
+\paragraph{Kết quả.} Bảng~\ref{tab:khoangcach} cho khoảng cách; Bảng~\ref{tab:sophong} cho số phòng.
+
+\begin{table}[H]
+\centering
+\caption{Giá trung vị (AUD) theo khoảng cách, chung và theo loại nhà; số giao dịch trong ngoặc}\label{tab:khoangcach}
+\small\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+Khoảng cách & Tất cả & Nhà riêng & Liền kề & Căn hộ & Tỷ lệ căn hộ \\
+\midrule
+0--5 km & \shortstack[r]{1,000,000\\{\scriptsize(2,231)}} & \shortstack[r]{1,350,000\\{\scriptsize(1,127)}} & \shortstack[r]{1,010,000\\{\scriptsize(151)}} & \shortstack[r]{580,000\\{\scriptsize(953)}} & 42.7\% \\
+5--10 km & \shortstack[r]{970,000\\{\scriptsize(5,097)}} & \shortstack[r]{1,220,000\\{\scriptsize(3,471)}} & \shortstack[r]{815,000\\{\scriptsize(419)}} & \shortstack[r]{520,000\\{\scriptsize(1,207)}} & 23.7\% \\
+10--15 km & \shortstack[r]{873,250\\{\scriptsize(4,604)}} & \shortstack[r]{981,000\\{\scriptsize(3,420)}} & \shortstack[r]{830,000\\{\scriptsize(460)}} & \shortstack[r]{591,500\\{\scriptsize(724)}} & 15.7\% \\
+15--20 km & \shortstack[r]{820,000\\{\scriptsize(911)}} & \shortstack[r]{865,000\\{\scriptsize(767)}} & \shortstack[r]{890,500\\{\scriptsize(56)}} & \shortstack[r]{650,000\\{\scriptsize(88)}} & 9.7\% \\
+Trên 20 km & \shortstack[r]{690,000\\{\scriptsize(731)}} & \shortstack[r]{710,000\\{\scriptsize(664)}} & \shortstack[r]{670,000\\{\scriptsize(28)}} & \shortstack[r]{529,000\\{\scriptsize(39)}} & 5.3\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Giá theo số phòng (AUD)}\label{tab:sophong}
+\small
+\begin{tabular}{@{}c r r r r@{}}
+\toprule
+Số phòng & Số giao dịch & Trung vị & Trung bình & Tăng so với mức trước \\
+\midrule
+1 & 681 & 385,000 & 433,824 & --- \\
+2 & 3,648 & 690,000 & 775,081 & +79\% \\
+3 & 5,881 & 950,000 & 1,076,081 & +38\% \\
+4 & 2,688 & 1,285,000 & 1,445,282 & +35\% \\
+5 & 596 & 1,660,000 & 1,870,260 & +29\% \\
+6 & 67 & 1,800,000 & 1,849,366 & +8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Với khoảng cách, nhìn chung giá giảm từ 1,000,000 (trong 5 km) xuống 690,000 (trên 20 km), tức giảm 31\%, nhưng mức giảm này yếu một cách đáng ngờ trong hai khoảng đầu (1,000,000 rồi 970,000). Khi tách theo loại nhà, quy luật hiện rõ ở nhà riêng: từ 1,350,000 xuống 710,000, giảm 47\%, và tương quan giá--khoảng cách riêng cho nhà riêng là $-$0.329 (gấp đôi mức chung $-$0.163). Căn hộ gần như không phụ thuộc vào khoảng cách (580,000 so với 529,000; tương quan $-$0.051). Lý do là căn hộ rẻ nhưng tập trung ở gần trung tâm (42.7\% giao dịch trong 5 km đầu là căn hộ, chỉ 5.3\% ở khoảng trên 20 km), nên kéo thấp mức giá trung vị ở gần trung tâm: đây là hiệu ứng gộp (confounding) mà việc nhóm chung che mất. Với số phòng, giá tăng đơn điệu và nhanh: nhà 4 phòng đắt gấp 3.3 lần nhà 1 phòng (1,285,000 so với 385,000). Mức tăng thêm mỗi phòng giảm dần (+79\%, +38\%, +35\%, +29\%), và mức +8\% ở 6 phòng chỉ dựa trên 67 giao dịch nên không đáng tin. Tương quan giá--số phòng là 0.497 (0.560 nếu dùng log của giá).
+
+\subsection{Phép 9. Phân khúc theo khoảng giá}
+\paragraph{Mục đích.} Mô tả đặc điểm của các nhóm nhà rẻ và đắt: nhà nào nằm ở đâu, bao nhiêu phòng, diện tích bao nhiêu. Đây là nhóm đầu vào để xác định phân khúc khó dự đoán (mục~\ref{sec:hamy}).
+\paragraph{Phương pháp.} Chia \texttt{Price} thành bốn phân khúc bằng \texttt{pd.cut} (mỗi khoảng đóng ở cận dưới: dưới 600,000; 600,000 đến dưới 1,000,000; 1,000,000 đến dưới 1,500,000; từ 1,500,000), sau đó tính trung vị của các thuộc tính và tỷ lệ nhà riêng, căn hộ, nhà ở Southern Metropolitan trong từng phân khúc.
+\begin{lstlisting}
+band = pd.cut(df["Price"], [0, 6e5, 1e6, 1.5e6, 1e8], right=False,
+              labels=["<600k", "600k-1M", "1M-1.5M", ">1.5M"])
+df.groupby(band, observed=True).agg(n=("Price", "size"), dist=("Distance", "median"),
+                                    rooms=("Rooms", "median"), area=("BuildingArea", "median"))
+\end{lstlisting}
+\paragraph{Kết quả.} Bảng~\ref{tab:phankhuc}.
+
+\begin{table}[H]
+\centering
+\caption{Đặc điểm theo phân khúc giá. Các dòng có đơn vị là trung vị của thuộc tính trong phân khúc; ``Southern'' là tỷ lệ giao dịch ở Southern Metropolitan.}\label{tab:phankhuc}
+\small
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+Chỉ tiêu & Dưới 600k & 600k--1M & 1M--1.5M & Từ 1.5M \\
+\midrule
+Số giao dịch (tỷ lệ) & 2,658 (19.6\%) & 5,082 (37.4\%) & 3,302 (24.3\%) & 2,538 (18.7\%) \\
+Giá trung vị (AUD) & 480,000 & 780,000 & 1,221,000 & 1,897,500 \\
+Số phòng & 2 & 3 & 3 & 4 \\
+Diện tích đất (m\textsuperscript{2}) & 480 & 510 & 489 & 621 \\
+Diện tích xây (m\textsuperscript{2}) & 76 & 117 & 140 & 203 \\
+Khoảng cách (km) & 9.1 & 10.8 & 8.8 & 8.2 \\
+Tỷ lệ nhà riêng & 29.2\% & 66.4\% & 87.6\% & 94.7\% \\
+Tỷ lệ căn hộ & 64.2\% & 22.2\% & 4.4\% & 1.5\% \\
+Tỷ lệ Southern & 27.7\% & 21.1\% & 34.4\% & 69.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Diễn giải.} Phân khúc từ 1,500,000 trở lên chiếm 18.7\% giao dịch và khác biệt rõ rệt: 69\% nằm ở Southern Metropolitan, 94.7\% là nhà riêng, trung vị 4 phòng và 203 m\textsuperscript{2} diện tích xây (gấp 2.7 lần phân khúc dưới 600,000). Ngược lại, 64.2\% giao dịch dưới 600,000 là căn hộ. Khoảng cách không đơn điệu theo giá (9.1, 10.8, 8.8 và 8.2 km): phân khúc 600,000--1,000,000 xa trung tâm nhất vì nhà rẻ nhất gồm cả căn hộ gần trung tâm, trong khi nhà trên 1,500,000 gần trung tâm hơn chỉ vừa phải. Điều này khớp với Phép 8: khoảng cách chỉ phân biệt rõ khi đã biết loại nhà. Phân khúc cao cấp nhỏ (2,538 dòng nhưng phân tán đến 9,000,000) là nơi dự đoán sẽ khó nhất, được bàn thêm ở mục~\ref{sec:hamy}.

@@ -1,0 +1,179 @@
+\chapter{Kiểm tra và làm sạch dữ liệu}\label{ch:lamsach}
+
+\section{Kiểm tra ban đầu: kiểu dữ liệu, dữ liệu thiếu, trùng lặp, giá trị lỗi}\label{sec:kiemtra}
+Trước khi chỉnh bất cứ điều gì, dữ liệu thô được kiểm tra ở bốn khía cạnh. Kết quả nằm trong Bảng~\ref{tab:kiemtra}.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả kiểm tra ban đầu trên tệp gốc (13,580 dòng)}\label{tab:kiemtra}
+\small
+\begin{tabular}{@{}l L{10.3cm}@{}}
+\toprule
+Khía cạnh & Kết quả \\
+\midrule
+Kiểu dữ liệu & 8 cột chuỗi, 1 cột số nguyên, 12 cột số thực. Cột \texttt{Date} là chuỗi \texttt{dd/mm/yyyy}, được đọc thành kiểu ngày với định dạng cố định. \\
+Dữ liệu thiếu & 4 cột có ô trống: \texttt{BuildingArea} 6,450 dòng (47.5\%), \texttt{YearBuilt} 5,375 (39.6\%), \texttt{CouncilArea} 1,369 (10.1\%), \texttt{Car} 62 (0.5\%). 17 cột còn lại đầy đủ. \\
+Trùng lặp & 0 dòng trùng hoàn toàn. Có 13,378 địa chỉ khác nhau trên 13,580 dòng nên một số địa chỉ xuất hiện nhiều lần; vì không có dòng nào trùng hoàn toàn nên tất cả đều được giữ. \\
+Giá trị lỗi hoặc bất thường & Xem Bảng~\ref{tab:loi}. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Giá trị lỗi hoặc bất thường phát hiện được}\label{tab:loi}
+\small
+\begin{tabular}{@{}l r L{6.6cm}@{}}
+\toprule
+Điều kiện & Số dòng & Nhận xét \\
+\midrule
+\texttt{YearBuilt} $<$ 1800 & 1 & Giá trị nhỏ nhất là năm 1196, không thể có \\
+\texttt{Landsize} $=$ 0 & 1,939 & 1,629 dòng là căn hộ (54\% số căn hộ) \\
+\texttt{Landsize} $>$ 100,000 & 1 & 433,014 m\textsuperscript{2}, phi thực tế cho một căn nhà \\
+\texttt{BuildingArea} $=$ 0 & 17 & Diện tích xây bằng 0 không hợp lý \\
+\texttt{BuildingArea} $>$ 10,000 & 1 & 44,515 m\textsuperscript{2} \\
+\texttt{Bathroom} $=$ 0 & 34 & Nhà không có phòng tắm là bất thường \\
+\texttt{Bedroom2} $=$ 0 & 16 & Cột này bị loại khỏi mô hình nên không xử lý \\
+\texttt{YearBuilt} $\geq$ 2017 & 19 & 6 dòng có năm xây sau ngày bán, làm tuổi nhà âm \\
+\texttt{Distance} $=$ 0 & 6 & Hợp lý (căn nhà nằm ngay trung tâm), giữ nguyên \\
+\texttt{Rooms} $\geq$ 7 & 19 & Hợp lý với nhà lớn, giữ nguyên \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{f_missing.png}
+\caption{Tỷ lệ dữ liệu thiếu theo cột trong tệp gốc. \texttt{BuildingArea} và \texttt{YearBuilt} thiếu gần một nửa nên không thể xóa các dòng thiếu.}\label{fig:missing}
+\end{figure}
+
+Điểm đáng lưu ý nhất là hai cột diện tích xây dựng và năm xây thiếu rất nhiều: sau làm sạch, xóa mọi dòng thiếu một trong hai cột này sẽ mất 6,740 dòng (49.6\% dữ liệu). Vì vậy dự án không xóa dòng mà xử lý giá trị thiếu ở bước tiền xử lý (mục~\ref{sec:thieu}).
+
+\section{Bảng quy tắc làm sạch}\label{sec:quytac}
+Làm sạch được viết thành hàm \texttt{clean()} trong \texttt{features.py} với bảy quy tắc cố định, không dùng thống kê của bất kỳ tập dữ liệu nào, nên có thể áp dụng y hệt cho dữ liệu mới. Mỗi quy tắc chuyển giá trị không hợp lệ thành giá trị thiếu (\texttt{NaN}) thay vì xóa dòng. Bảng~\ref{tab:quytac} gồm quy tắc, lý do và số dòng bị ảnh hưởng; phiên bản đầy đủ kèm đoạn mã nằm ở Phụ lục~\ref{pl:quytac}.
+
+\begin{table}[H]
+\centering
+\caption{Bảy quy tắc làm sạch, lý do và số dòng bị ảnh hưởng}\label{tab:quytac}
+\small
+\begin{tabular}{@{}c L{3.7cm} L{6.0cm} r@{}}
+\toprule
+\# & Quy tắc & Lý do & Số dòng \\
+\midrule
+1 & \texttt{YearBuilt} $<$ 1800 $\to$ thiếu & Năm 1196 là lỗi nhập liệu & 1 \\
+2 & \texttt{Landsize} $=$ 0 $\to$ thiếu & Đất bằng 0 m\textsuperscript{2} là ``không có số liệu'', nhất là với căn hộ & 1,939 \\
+3 & \texttt{Landsize} $>$ 100,000 $\to$ thiếu & Ngoại lai phi thực tế cho nhà ở & 1 \\
+4 & \texttt{BuildingArea} $=$ 0 $\to$ thiếu & Diện tích xây bằng 0 không hợp lý & 17 \\
+5 & \texttt{BuildingArea} $>$ 10,000 $\to$ thiếu & Ngoại lai phi thực tế & 1 \\
+6 & \texttt{Bathroom} $=$ 0 $\to$ thiếu & Nhà ở bán không thể không có phòng tắm & 34 \\
+7 & \texttt{CouncilArea} thiếu $\to$ ``Unknown'' & Giữ ``không biết'' thành một nhóm riêng thay vì bỏ dòng & 1,369 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{f_cleaning.png}
+\caption{Số dòng bị ảnh hưởng bởi từng quy tắc làm sạch. Quy tắc cho \texttt{Landsize} bằng 0 ảnh hưởng nhiều nhất.}\label{fig:cleaning}
+\end{figure}
+
+Tổng số dòng bị xóa là 0: sau làm sạch bảng vẫn có 13,580 dòng. Số ô thiếu thay đổi như sau: \texttt{Landsize} từ 0 lên 1,940, \texttt{BuildingArea} từ 6,450 lên 6,468, \texttt{YearBuilt} từ 5,375 lên 5,376, \texttt{Bathroom} từ 0 lên 34, còn \texttt{CouncilArea} từ 1,369 xuống 0 vì được thay bằng ``Unknown''.
+
+Ngoài làm sạch, bước kỹ thuật dữ liệu (\texttt{engineer()}) thêm hai biến chỉ dựa trên chính dòng đó: \texttt{SaleMonth} (tháng bán) và \texttt{HouseAge} (năm bán trừ năm xây; giá trị âm, gặp ở 6 dòng, được đặt thành thiếu). Năm cột bị loại khỏi mô hình gồm \texttt{Address}, \texttt{Bedroom2}, \texttt{Method}, \texttt{SellerG} và \texttt{Postcode}, với lý do nêu ở Bảng~\ref{tab:tudien} và mục~\ref{sec:hamy}.
+
+\section{Xử lý dữ liệu thiếu và ngoại lai}\label{sec:thieu}
+\paragraph{Dữ liệu thiếu.} Sau làm sạch, các cột số còn thiếu được xử lý trong bộ tiền xử lý của scikit-learn bằng cùng một cách: điền bằng \emph{trung vị của tập train} và thêm một cột cờ báo ô đó từng thiếu (\texttt{add\_indicator}). Cờ thiếu có ích vì việc thiếu không hẳn là ngẫu nhiên. Ví dụ, giá trung vị của các dòng thiếu \texttt{Landsize} là 560,000 AUD, trong khi các dòng có \texttt{Landsize} là 973,250 AUD; sự chênh lệch này đến từ việc căn hộ, loại rẻ nhất, hầu như không có số liệu đất. Với \texttt{BuildingArea} (917,500 so với 894,500 AUD) và \texttt{YearBuilt} (937,750 so với 880,000 AUD) chênh lệch nhỏ hơn nhiều. Cột \texttt{CouncilArea} thiếu được gom thành nhóm ``Unknown'' và mã hóa mục tiêu như các giá trị khác.
+
+\paragraph{Ngoại lai.} Với giá, quy tắc tứ phân vị (Q1 $=$ 650,000, Q3 $=$ 1,330,000) cho ngưỡng trên là 2,350,000 AUD; 612 dòng (4.5\%) vượt ngưỡng này. Các dòng đó được giữ nguyên vì đều là giao dịch có thể có thật (Bảng~\ref{tab:toplon}). Thay vì loại bỏ, dự án giảm ảnh hưởng của đuôi phải bằng cách dự đoán \emph{log của giá}: độ lệch của giá giảm từ 2.24 xuống 0.18 (Hình~\ref{fig:hist}). Với \texttt{Landsize} và \texttt{BuildingArea}, các giá trị phi thực tế đã bị loại bằng quy tắc 3 và 5; các giá trị lớn còn lại (đất tối đa 76,000 m\textsuperscript{2}, diện tích xây tối đa 6,791 m\textsuperscript{2}) được xử lý bằng phép \texttt{log1p}.
+
+\begin{table}[H]
+\centering
+\caption{Năm giao dịch có giá cao nhất và ba giao dịch có giá thấp nhất}\label{tab:toplon}
+\small
+\begin{tabular}{@{}l l c r r@{}}
+\toprule
+Suburb & Loại & Số phòng & Giá (AUD) & Ngày bán \\
+\midrule
+Mulgrave & h & 3 & 9,000,000 & 29/07/2017 \\
+Canterbury & h & 5 & 8,000,000 & 13/05/2017 \\
+Hawthorn & h & 4 & 7,650,000 & 17/06/2017 \\
+Kew & h & 6 & 6,500,000 & 13/08/2016 \\
+Middle Park & h & 5 & 6,400,000 & 09/09/2017 \\
+\midrule
+Footscray & u & 1 & 85,000 & 03/09/2016 \\
+Caulfield & h & 4 & 131,000 & 25/02/2017 \\
+Coburg & h & 4 & 145,000 & 04/06/2016 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Căn nhà ở Mulgrave giá 9,000,000 AUD với ba phòng là điểm bất thường lớn nhất; dự án vẫn giữ nó và coi đây là một trường hợp khó dự đoán, sẽ được nhắc lại khi phân tích sai số của mô hình.
+
+\section{Chia tập train, validation, test theo thời gian}\label{sec:chia}
+Dữ liệu có cột ngày bán nên chia theo thời gian, không chia ngẫu nhiên: mô hình được huấn luyện trên quá khứ và kiểm tra trên giai đoạn sau, đúng như khi dùng thật. Mốc chia lấy ở phân vị 70\% và 85\% của cột ngày, cắt theo ngày để không tách một ngày giữa hai tập. Bảng~\ref{tab:chia} cho kết quả và Hình~\ref{fig:split} minh họa.
+
+\begin{table}[H]
+\centering
+\caption{Ba tập dữ liệu chia theo thời gian}\label{tab:chia}
+\small
+\begin{tabular}{@{}l r l l r@{}}
+\toprule
+Tập & Số dòng & Từ ngày & Đến ngày & Giá trung vị (AUD) \\
+\midrule
+Train & 9,587 & 28/01/2016 & 03/06/2017 & 910,000 \\
+Validation & 2,239 & 17/06/2017 & 29/07/2017 & 816,000 \\
+Test & 1,754 & 12/08/2017 & 23/09/2017 & 1,001,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{f_split.png}
+\caption{Số giao dịch theo tháng bán của ba tập: các tập nối tiếp nhau theo thời gian và không chồng lấn ngày nào.}\label{fig:split}
+\end{figure}
+
+Hai điều cần ghi nhận từ Bảng~\ref{tab:chia}. Thứ nhất, giá trung vị khác nhau rõ giữa các tập (816,000 ở validation, thấp hơn train 10.3\%; 1,001,000 ở test, cao hơn train 10.0\%), nên sai số đo trên validation chưa chắc bằng sai số trên test. Thứ hai, có 54 suburb (147 dòng) ở validation và 46 suburb (111 dòng) ở test chưa từng xuất hiện trong train, nên bộ mã hóa suburb phải xử lý được giá trị lạ.
+
+\paragraph{Nguyên tắc chỉ học thống kê từ train.} Mọi đại lượng được ``học'' từ dữ liệu, gồm trung vị để điền thiếu, trung bình và độ lệch chuẩn để chuẩn hóa, và bảng mã hóa mục tiêu của suburb, chỉ được tính (\texttt{fit}) trên tập train rồi áp dụng (\texttt{transform}) cho validation và test. Đoạn mã dưới đây nằm trong \texttt{build\_preprocessor()}; việc gọi \texttt{fit} chỉ trên train bảo đảm không rò rỉ thông tin từ tương lai vào quá trình học.
+
+\begin{lstlisting}
+num_pipe = Pipeline([("imp", SimpleImputer(strategy="median", add_indicator=True)),
+                     ("sc", StandardScaler())])
+ColumnTransformer([
+    ("log", log_pipe, LOG_COLS),          # Landsize, BuildingArea: log1p -> median -> scale
+    ("num", num_pipe, NUM_COLS),
+    ("ohe", OneHotEncoder(handle_unknown="ignore", sparse_output=False), OHE_COLS),
+    ("te",  TargetEncoder(target_type="continuous", random_state=0), TE_COLS),  # Suburb, CouncilArea
+])
+\end{lstlisting}
+
+Sau tiền xử lý, ma trận đặc trưng có 30 cột và không còn ô thiếu nào ở tập train và validation.
+
+\section{Dùng chung tiền xử lý giữa các bước xử lý}\label{sec:dungchung}
+Lỗi thường gặp nhất của bài toán học máy là tiền xử lý ở mỗi nơi một khác. Dự án tránh lỗi này bằng cách đặt toàn bộ bước làm sạch, tạo biến và tiền xử lý vào một nơi duy nhất, \texttt{ml\_pipeline/features.py}, gồm ba thành phần: \texttt{clean()}, \texttt{engineer()} và \texttt{build\_preprocessor()}. Mọi nơi cần các bước này đều gọi lại chính các hàm đó (Hình~\ref{fig:dungchung}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=6mm, every node/.style={font=\footnotesize},
+  box/.style={draw,rounded corners,align=center,minimum height=9mm,fill=blue!6},
+  arr/.style={-{Stealth[length=2.2mm]}}]
+  \node[box] (raw) {Tệp gốc\\\texttt{melb\_data.csv}};
+  \node[box,right=of raw] (clean) {\texttt{clean()}\\7 quy tắc};
+  \node[box,right=of clean] (eng) {\texttt{engineer()}\\\texttt{SaleMonth}, \texttt{HouseAge}};
+  \node[box,right=of eng] (pre) {\texttt{build\_preprocessor()}\\fit trên train};
+  \draw[arr] (raw)--(clean); \draw[arr] (clean)--(eng); \draw[arr] (eng)--(pre);
+  \node[box,below=12mm of clean,fill=green!8,xshift=-8mm] (train) {Huấn luyện\\\texttt{02\_prep.py}, \texttt{03\_model.py}};
+  \node[box,below=12mm of pre,fill=orange!10,xshift=-4mm] (app) {Phân tích và notebook\\\texttt{analysis.py}};
+  \draw[arr] (pre.south) -- ++(0,-4mm) -| (train.north);
+  \draw[arr] (pre.south) -- (app.north);
+\end{tikzpicture}
+\caption{Một nguồn tiền xử lý duy nhất (\texttt{features.py}) phục vụ cả phân tích và huấn luyện.}\label{fig:dungchung}
+\end{figure}
+
+Các chương trình sau đều nhập (\texttt{import}) \texttt{features.py}:
+\begin{itemize}[nosep]
+  \item huấn luyện và đánh giá: \texttt{02\_prep.py}, \texttt{03\_model.py}, \texttt{04\_error\_analysis.py}, \texttt{05\_final\_test.py}, \texttt{train\_model.py};
+  \item phân tích và notebook: \texttt{analysis.py}, \texttt{Housing\_Price\_Analysis.ipynb}.
+\end{itemize}
+Bộ kiểm thử \texttt{tests/test\_features.py} khóa hành vi của các hàm này để một thay đổi vô ý ở \texttt{features.py} bị phát hiện ngay.

@@ -1,0 +1,119 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{TeX Gyre Termes}
+\setsansfont{TeX Gyre Heros}
+\setmonofont{TeX Gyre Cursor}[Scale=0.88]
+
+\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm,headheight=15pt]{geometry}
+\usepackage{etoolbox}
+\usepackage{graphicx,booktabs,longtable,array,float,xcolor,amsmath,enumitem,tabularx}
+\usepackage{caption}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\usepackage[unicode,hidelinks,pdftitle={Báo cáo phân tích dữ liệu giá nhà Melbourne}]{hyperref}
+\usepackage{xurl}
+
+\linespread{1.2}
+\emergencystretch=3em
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 1pt minus 0.5pt}
+\setlist{leftmargin=1.6em,labelsep=0.6em,itemsep=2pt,parsep=0pt,topsep=2pt,partopsep=0pt}
+\setlist[enumerate]{leftmargin=1.8em}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\graphicspath{{figures/}}
+
+\gappto\captionsvietnamese{%
+  \renewcommand{\contentsname}{Mục lục}%
+  \renewcommand{\listfigurename}{Danh mục hình}%
+  \renewcommand{\listtablename}{Danh mục bảng}}
+
+% ---------- tiêu đề chương: "Chương 1. Giới thiệu", phụ lục: "Phụ lục A. ..." ----------
+\titleformat{\chapter}[hang]{\normalfont\Large\bfseries}{\chaptertitlename\ \thechapter.}{0.5em}{}
+\titleformat{name=\chapter,numberless}[hang]{\normalfont\Large\bfseries}{}{0pt}{}
+\titlespacing*{\chapter}{0pt}{-10pt}{18pt}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\titleformat{\paragraph}[runin]{\normalfont\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{16pt plus 2pt}{6pt}
+\titlespacing*{\subsection}{0pt}{12pt plus 2pt}{4pt}
+\titlespacing*{\paragraph}{0pt}{8pt}{0.4em}
+
+% ---------- mục lục ----------
+\renewcommand{\cftchappresnum}{Chương }
+\renewcommand{\cftchapaftersnum}{.}
+\setlength{\cftchapnumwidth}{5.6em}
+\setlength{\cftsecindent}{5.6em}
+\setlength{\cftsecnumwidth}{3em}
+\setlength{\cftsubsecindent}{8.6em}
+\setlength{\cftsubsecnumwidth}{3.4em}
+\setlength{\cftbeforechapskip}{0.6em}
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchappagefont}{\bfseries}
+\makeatletter
+\newcommand{\danhmuc}[3]{\chapter*{#2}\markboth{#2}{}#3\@starttoc{#1}}
+\makeatother
+\setlength{\cftfignumwidth}{2.4em}
+\setlength{\cfttabnumwidth}{2.4em}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape\leftmark}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\chaptermark}[1]{\markboth{\chaptertitlename\ \thechapter.\ #1}{}}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- hình, bảng, mã ----------
+\captionsetup{font=small,labelfont=bf,labelsep=period,justification=centering,singlelinecheck=false,width=0.92\linewidth}
+\captionsetup[table]{skip=6pt}
+% Lưu ý: khối mã (lstlisting) chỉ dùng ký tự ASCII, vì gói listings làm đảo chữ có dấu tiếng Việt khi dịch bằng XeLaTeX; chú thích tiếng Việt viết ở phần văn bản.
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,frame=single,language=Python,columns=fullflexible,
+        keywordstyle=\bfseries,commentstyle=\itshape\color{gray},showstringspaces=false,xleftmargin=4pt,xrightmargin=4pt,framesep=4pt,aboveskip=6pt,belowskip=6pt}
+
+% Khung giữ chỗ cho ảnh chụp màn hình thật: chưa có tệp thì hiện khung ghi tên tệp cần chèn (không dùng ảnh giả).
+\newcommand{\anhchup}[3]{%
+  \begin{figure}[H]\centering
+  \IfFileExists{screenshots/#1}%
+    {\includegraphics[width=0.95\linewidth]{screenshots/#1}}%
+    {\fbox{\parbox[c][5.5cm][c]{0.85\linewidth}{\centering\textit{Khung giữ chỗ: chèn ảnh chụp màn hình\\[2pt]\texttt{screenshots/\detokenize{#1}}}}}}%
+  \caption{#2}\label{#3}\end{figure}}
+
+% ---------- thông tin bìa  ----------
+\newcommand{\TenTruong}{{Trường Đại học Sư Phạm TPHCM}}
+\newcommand{\TenKhoa}{{Khoa Công nghệ Thông tin}}
+\newcommand{\HoTen}{{Nguyễn Tuấn Khải}}
+\newcommand{\MSSV}{{51.01.104.125}}
+\newcommand{\GiangVien}{{ThS. Lương Trần Hy Hiến}}
+\newcommand{\NamHoc}{2026 - 2027}
+
+\begin{document}
+\pagenumbering{gobble}
+\input{chapters/bia}
+\clearpage
+\pagenumbering{roman}
+\setcounter{page}{1}
+\danhmuc{toc}{\contentsname}{}
+\danhmuc{lof}{\listfigurename}{\addcontentsline{toc}{chapter}{\listfigurename}}
+\danhmuc{lot}{\listtablename}{\addcontentsline{toc}{chapter}{\listtablename}}
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\input{chapters/ch1}
+\input{chapters/ch2}
+\input{chapters/ch3}
+\input{chapters/ch4}
+\input{chapters/ch5}
+\input{chapters/ch6}
+
+\appendix
+\addtocontents{toc}{\protect\renewcommand{\protect\cftchappresnum}{Phụ lục }}
+\input{chapters/phuluc}
+\end{document}

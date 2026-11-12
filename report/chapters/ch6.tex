@@ -1,0 +1,81 @@
+\chapter{Kết luận}\label{ch:ketluan}
+
+\section{Các nhận xét chính từ dữ liệu}\label{sec:nhanxet}
+Từ chín phép phân tích ở Chương~\ref{ch:phantich}, báo cáo rút ra bảy nhận xét. Mỗi nhận xét dẫn số liệu cụ thể và chỉ ra phép phân tích là nguồn của nó.
+\begin{enumerate}
+  \item \textbf{Loại nhà là yếu tố phân biệt giá mạnh nhất.} Giá trung vị của nhà riêng là 1,080,000 AUD, gấp 1.9 lần căn hộ (560,000); nhà liền kề ở giữa với 846,750 (Phép 2).
+  \item \textbf{Vị trí tạo ra chênh lệch giá rất lớn, nhưng chủ yếu ở nhà riêng.} Suburb đắt nhất trong nhóm có từ 30 giao dịch (Albert Park, 1,900,000) gấp 3.9 lần suburb rẻ nhất (Werribee, 490,000). Giữa các vùng, nhà riêng ở Southern Metropolitan (1,650,000) gấp 1.9 lần ở Western Metropolitan (869,000), trong khi căn hộ chỉ chênh 1.3 lần (610,000 so với 460,000) (Phép 3, 7).
+  \item \textbf{Khoảng cách đến trung tâm có ảnh hưởng, nhưng nếu chỉ nhìn số liệu gộp thì bị đánh giá thấp.} Tương quan giá--khoảng cách chung chỉ $-$0.163. Với nhà riêng nó gấp đôi ($-$0.329) và giá trung vị giảm 47\% từ 1,350,000 (trong 5 km) xuống 710,000 (trên 20 km), còn căn hộ gần như không đổi. Lý do là căn hộ rẻ nhưng tập trung ở gần trung tâm (42.7\% giao dịch trong 5 km đầu so với 5.3\% ở trên 20 km) (Phép 8).
+  \item \textbf{Quy mô căn nhà có quan hệ đơn điệu rõ với giá.} Nhà 4 phòng có giá trung vị 1,285,000, gấp 3.3 lần nhà 1 phòng (385,000). Diện tích xây có Spearman 0.636 với giá, cao nhất trong các thuộc tính số, nhưng thuộc tính này thiếu 47.6\% giá trị (Phép 5, 8).
+  \item \textbf{Giá lệch phải mạnh và phân khúc cao cấp khác hẳn phần còn lại.} Độ lệch của giá là 2.24 (0.18 sau khi lấy log); 18.7\% giao dịch từ 1,500,000 trở lên, trong đó 69\% ở Southern Metropolitan và 94.7\% là nhà riêng với diện tích xây trung vị 203 m\textsuperscript{2}, so với 76 m\textsuperscript{2} ở phân khúc dưới 600,000 (Phép 1, 9).
+  \item \textbf{Trung vị thô theo thời gian che mất xu hướng.} Trung vị theo quý đi ngang trong khoảng 860,000--955,000, nhưng sau khi điều chỉnh cơ cấu suburb và loại nhà, giá tăng khoảng 10\% từ 2016Q2 (0.931) đến 2017Q1 (1.028) rồi ổn định quanh 1.02. Điểm trũng tháng 7/2017 (755,000) chủ yếu là hiệu ứng cơ cấu: chỉ số điều chỉnh của tháng đó vẫn là 1.001 (Phép 4, 6).
+  \item \textbf{Dữ liệu thiếu mang thông tin.} Có 1,939 dòng có \texttt{Landsize} bằng 0, trong đó 1,629 dòng là căn hộ (54\% số căn hộ). Các dòng thiếu diện tích đất có giá trung vị 560,000, so với 973,250 ở các dòng có giá trị; nói cách khác ``thiếu'' ở đây gần như đồng nghĩa với ``căn hộ'' và không nên bị coi là nhiễu ngẫu nhiên (Chương~\ref{ch:lamsach}).
+\end{enumerate}
+
+\section{Hàm ý cho bước mô hình hóa}\label{sec:hamy}
+Phần này chuyển các nhận xét trên thành quyết định cho mô hình dự đoán giá của dự án (chi tiết huấn luyện nằm ở \texttt{ml\_pipeline/PIPELINE.md}).
+
+\subsection{Mục tiêu và đặc trưng nên dùng}
+Bảng~\ref{tab:dactrung} liệt kê các nhóm đặc trưng giữ lại và bằng chứng từ phân tích.
+
+\begin{table}[H]
+\centering
+\caption{Đặc trưng nên dùng và căn cứ từ phân tích dữ liệu}\label{tab:dactrung}
+\small
+\begin{tabular}{@{}L{3.6cm} L{3.6cm} L{6.6cm}@{}}
+\toprule
+Nhóm & Cách xử lý & Căn cứ \\
+\midrule
+Mục tiêu \texttt{Price} & Dự đoán log(giá), báo cáo lại bằng AUD & Độ lệch 2.24 giảm còn 0.18 (Phép 1) \\
+\texttt{Type}, \texttt{Regionname} & One-hot & Ít giá trị (3 và 8) và phân biệt giá mạnh (Phép 2, 3); tương tác với nhau (Phép 7) \\
+\texttt{Suburb}, \texttt{CouncilArea} & Target encoding, chỉ học trên train & Suburb có 314 giá trị, 59 suburb dưới 5 giao dịch; chênh giá 3.9 lần (Phép 3) \\
+\texttt{Rooms}, \texttt{Bathroom}, \texttt{Car} & Số, điền thiếu bằng trung vị & Rooms 0.497, Bathroom 0.469 (Phép 5, 8) \\
+\texttt{Distance}, \texttt{Lattitude}, \texttt{Longtitude} & Số & Distance có ảnh hưởng rõ khi tách loại nhà (Phép 8); tọa độ giúp mô hình học vị trí chi tiết \\
+\texttt{Landsize}, \texttt{BuildingArea} & \texttt{log1p}, điền trung vị và thêm cờ ``đã thiếu'' & Lệch phải, có ngoại lai; thiếu mang thông tin (nhận xét 7) \\
+\texttt{YearBuilt}, \texttt{HouseAge}, \texttt{SaleMonth} & Số, thêm cờ thiếu & Tuổi nhà tương quan 0.332 với giá, gián tiếp qua suburb và loại nhà (Phép 5); tháng bán cho mô hình bắt mức giá theo giai đoạn (Phép 6) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Các cột bị loại và cột nghi rò rỉ}
+Rò rỉ (leakage) là việc mô hình dùng thông tin chỉ có sau khi giao dịch xảy ra hoặc thông tin gián tiếp chứa đáp án. Dự án chọn thời điểm dự đoán là \emph{lúc định giá}, nên chỉ dùng thuộc tính của căn nhà, vị trí và tháng bán.
+\begin{itemize}[nosep]
+  \item \texttt{Method} (phương thức bán) và \texttt{SellerG} (đại lý bán): chỉ biết khi quá trình bán đã diễn ra, và \texttt{Method} liên hệ với giá (trung vị phương thức \texttt{SP} là 770,000, thấp hơn \texttt{S} là 925,000). Đây là hai cột \emph{nghi rò rỉ} chính, bị loại.
+  \item \texttt{Address}: gần như định danh (13,378 giá trị khác nhau trên 13,580 dòng), mô hình sẽ ghi nhớ thay vì khái quát.
+  \item \texttt{Bedroom2}: trùng \texttt{Rooms} ở 95\% số dòng (tương quan 0.944), dư thừa.
+  \item \texttt{Postcode}: trùng thông tin với suburb (198 mã so với 314 suburb).
+  \item Các thống kê dùng để điền thiếu, chuẩn hóa và target encoding chỉ được học từ tập train; nếu học trên toàn bộ dữ liệu thì thông tin giá của tập kiểm tra sẽ rò vào mô hình qua suburb. Chỉ số điều chỉnh ở Phép 6 dùng trung vị trên toàn bộ dữ liệu nên \emph{chỉ để mô tả}, không được đưa vào mô hình.
+\end{itemize}
+
+\subsection{Phân khúc khó dự đoán và rủi ro dịch chuyển}
+\begin{itemize}[nosep]
+  \item \textbf{Nhà từ 1,500,000 trở lên} (18.7\% dữ liệu, tối đa 9,000,000): phân tán lớn (hệ số biến thiên của nhà riêng 0.54), ít mẫu ở đuôi và các giá trị cực đoan như căn 9,000,000 ở Mulgrave. Phân khúc này cần được theo dõi riêng khi đánh giá mô hình.
+  \item \textbf{Phân khúc dưới 600,000} (19.6\%, 64.2\% là căn hộ): căn hộ có diện tích xây và đất thiếu nhiều, khoảng cách ít giải thích giá (Phép 8), nên khó dự đoán chính xác theo tỷ lệ.
+  \item \textbf{Ba vùng Victoria ngoài đô thị} (32--53 giao dịch mỗi vùng) và các suburb thưa (59 suburb có dưới 5 dòng): kết quả không ổn định. Suburb chưa từng xuất hiện ở tập train phải được xử lý bằng giá trị mặc định của target encoding.
+  \item \textbf{Dịch chuyển theo thời gian}: giá trung vị của ba tập là 910,000 (train), 816,000 (validation) và 1,001,000 (test),, tức mô hình huấn luyện trên giai đoạn cũ phải dự đoán ở mặt bằng giá khác. Đây là lý do dùng chia theo thời gian thay vì chia ngẫu nhiên: chia ngẫu nhiên sẽ che giấu rủi ro này và cho kết quả lạc quan.
+\end{itemize}
+
+\section{Hạn chế và hướng cải thiện}\label{sec:hanche}
+Bảng~\ref{tab:hanche} nêu các hạn chế của dữ liệu và cách làm, cùng hướng cải thiện tương ứng.
+
+\begin{table}[H]
+\centering
+\caption{Hạn chế và hướng cải thiện}\label{tab:hanche}
+\small
+\begin{tabular}{@{}L{7.0cm} L{6.7cm}@{}}
+\toprule
+Hạn chế & Hướng cải thiện \\
+\midrule
+Giai đoạn ngắn và có khoảng trống: 19 tháng có giao dịch, quý 1/2016 chỉ có 28 giao dịch, không có giao dịch tháng 3/2016 và tháng 1/2017. Không tách được mùa vụ khỏi xu hướng. & Thu thêm dữ liệu nhiều năm, đủ các tháng; khi đó mới ước lượng được mùa vụ và đánh giá mô hình qua nhiều chu kỳ giá. \\
+Chỉ có các căn đã bán (thiên lệch chọn mẫu): không biết những căn không bán được. & Bổ sung dữ liệu niêm yết nếu có; nêu rõ phạm vi áp dụng của mô hình. \\
+Giá danh nghĩa và không có biến vĩ mô (lãi suất, thu nhập, nguồn cung) nên không giải thích được diễn biến theo thời gian. & Thêm chuỗi vĩ mô theo tháng, hoặc quy đổi giá về một chỉ số giá nhà chung. \\
+Dữ liệu thiếu nhiều: \texttt{BuildingArea} 47.6\%, \texttt{YearBuilt} 39.6\% (căn hộ gần như không có \texttt{Landsize}). & Thu thập thêm từ nguồn khác; điền thiếu theo suburb và loại nhà thay vì một trung vị chung (đã thêm cờ ``thiếu''). \\
+Vùng và suburb thưa dữ liệu (ba vùng dưới 54 giao dịch; 59 suburb dưới 5 dòng). & Gộp nhóm nhỏ hoặc dùng mô hình phân cấp; target encoding hiện đã làm mịn một phần. \\
+Vị trí chỉ có khoảng cách đến trung tâm và tọa độ, chưa có tiện ích (ga, trường học, công viên). & Thêm đặc trưng từ dữ liệu mở về giao thông và tiện ích. \\
+Phân khúc cao cấp ít mẫu, sai số lớn; sai số hiện tại chưa đủ để định giá thay chuyên gia. & Dùng khoảng dự đoán hoặc hồi quy phân vị; đối chiếu với thẩm định thực tế. \\
+Nguồn gốc dữ liệu chưa được xác minh đầy đủ: giấy phép, ngày tải và cách thu thập gốc (Chương~\ref{ch:nguon}); đơn vị m\textsuperscript{2} của diện tích được suy ra chứ không có mô tả chính thức. & Điền thông tin còn trống trước khi nộp; liên hệ tác giả bộ dữ liệu để xác nhận đơn vị và cách thu thập. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ngoài ra, hàm thống kê theo khoảng cách (\texttt{stats\_by\_distance}) dùng khoảng mở ở cận dưới nên bỏ qua 6 dòng có khoảng cách bằng 0 (6 trên 13,580 dòng). Sai lệch nhỏ này đã được ghi chú ở Phép 8 và chưa được sửa trong mã.
