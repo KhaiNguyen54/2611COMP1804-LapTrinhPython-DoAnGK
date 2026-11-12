@@ -1,6 +1,6 @@
 \chapter{Nguồn dữ liệu}\label{ch:nguon}
 
-\section{Tên bộ dữ liệu, nơi lấy, giấy phép, ngày tải, cách thu thập}\label{sec:nguon}
+\section{Tên bộ dữ liệu, nơi lấy, giấy phép, cách thu thập}\label{sec:nguon}
 \begin{table}[H]
 \centering
 \caption{Thông tin nguồn của bộ dữ liệu}\label{tab:nguon}
@@ -9,13 +9,12 @@
 \toprule
 Mục & Thông tin \\
 \midrule
-Tên bộ dữ liệu & \emph{Melbourne Housing Dataset} \\
-Nơi lấy & Kaggle, tài khoản đăng tải \texttt{ronikmalhotra}: \url{https://www.kaggle.com/datasets/ronikmalhotra/melbourne-housing-dataset} \\
+Tên bộ dữ liệu & \emph{Melbourne Housing Snapshot} \\
+Nơi lấy & Kaggle, tài khoản đăng tải \texttt{dansbecker}; thông tin bộ dữ liệu tại \url{https://www.kaggle.com/datasets/dansbecker/melbourne-housing-snapshot} \\
 Tệp sử dụng & \texttt{melb\_data.csv}, lưu trong \texttt{data/} \\
-Giấy phép & \dien{giấy phép ghi ở mục License trên trang Kaggle} \\
-Ngày tải & \dien{ngày tải tệp về} \\
-Cách thu thập dữ liệu gốc & \dien{phương pháp thu thập do tác giả bộ dữ liệu mô tả trên trang Kaggle} \\
-Cách lấy dữ liệu trong dự án & Tải thủ công một tệp CSV từ Kaggle rồi đặt vào \texttt{data/}; không dùng API hay web scraping để lấy bộ dữ liệu này. \\
+Giấy phép & CC BY-NC-SA 4.0 (Ghi công -- Phi thương mại -- Chia sẻ tương tự); cần giữ thông tin ghi công và tuân thủ điều kiện giấy phép khi chia sẻ hoặc biến đổi dữ liệu \\
+Cách thu thập dữ liệu gốc & Bằng phương pháp cào dữ liệu web (web scraping) các tin đăng bán nhà công khai qua trang \url{https://www.domain.com.au}; bộ dữ liệu là bản chụp (snapshot) từ bộ Melbourne Housing của Tony Pino \\
+Cách lấy dữ liệu trong dự án & Tải thủ công một tệp CSV từ Kaggle rồi đặt vào \texttt{data/}; dự án không tự cào dữ liệu hay gọi API để lấy bộ dữ liệu này. \\
 \bottomrule
 \end{tabular}
 \end{table}
