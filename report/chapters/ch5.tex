@@ -1,82 +1,56 @@
 \chapter{Trực quan hóa dữ liệu}\label{ch:trucquan}
 
 \section{Nguyên tắc trình bày}\label{sec:nguyentac}
-Mọi biểu đồ trong báo cáo và trong ứng dụng được vẽ bằng Matplotlib và Seaborn từ cùng các hàm trong \texttt{analysis.py}, và tuân theo các nguyên tắc sau:
+Các biểu đồ phân tích được vẽ bằng Matplotlib và Seaborn trong hàm \texttt{create\_charts()} của \texttt{pipeline.py}, và tuân theo các nguyên tắc sau:
 \begin{itemize}[nosep]
-  \item \textbf{Mỗi biểu đồ trả lời một câu hỏi}, và câu hỏi đó được nêu ngay ở tiêu đề hoặc chú thích hình.
-  \item \textbf{Có tiêu đề, nhãn hai trục và đơn vị} (ví dụ ``Giá (triệu AUD)'', ``Khoảng cách đến trung tâm (km)''). Giá được chia cho một triệu để trục dễ đọc.
-  \item \textbf{Chọn dạng biểu đồ theo bản chất dữ liệu}: biểu đồ cột tần suất (histogram) cho một biến liên tục, hộp (boxplot) để so sánh phân phối giữa các nhóm, cột để so sánh một giá trị tổng hợp giữa các nhóm, đường cho chuỗi theo thời gian, phân tán (scatter) cho hai biến liên tục, bản đồ nhiệt (heatmap) cho ma trận tương quan.
-  \item \textbf{Trung thực về thang đo và số lượng.} Biểu đồ cột bắt đầu từ 0. Biểu đồ đường theo quý chỉ vẽ các quý có từ 200 giao dịch, ghi rõ điều đó ở nhãn trục, và trục tung không bắt đầu từ 0 mà chạy từ 0.7 đến 1.1 triệu AUD để thấy rõ biến động nhỏ, nên mức dao động trông lớn hơn thực tế và được nhắc lại trong phần đọc hình. Biểu đồ cột theo số phòng ghi số giao dịch $n$ trên đầu mỗi cột để người đọc biết cột nào dựa trên ít dữ liệu.
-  \item \textbf{Dùng trung vị thay cho trung bình} khi tổng hợp giá, vì giá lệch phải (Phép 1).
-  \item \textbf{Bảng màu đơn giản và có ghi chú bằng số}, không dựa vào màu một mình: các giá trị quan trọng được ghi trực tiếp lên hình (nhãn trung vị trên đường, hệ số trong ô heatmap).
-  \item \textbf{Biểu đồ của tập con} nói rõ đã bỏ gì: biểu đồ phân tán dùng mẫu ngẫu nhiên 3,000 điểm (cố định \texttt{random\_state}) và giới hạn trục giá 0--5 triệu AUD; biểu đồ hộp ẩn các điểm ngoại lai để so sánh hộp rõ hơn.
+  \item \textbf{Mỗi biểu đồ trả lời một câu hỏi}, nêu ngay ở tiêu đề hình.
+  \item \textbf{Có tiêu đề, nhãn hai trục và đơn vị}: giá tính bằng AUD, khoảng cách bằng km. Ở các trục giá, Matplotlib viết ký hiệu $\times 10^{6}$ ở góc trục (ví dụ ``1.0'' kèm ``1e6'' nghĩa là 1,000,000 AUD).
+  \item \textbf{Chọn dạng biểu đồ theo bản chất dữ liệu}: histogram cho một biến liên tục, hộp (boxplot) để so sánh phân phối giữa các nhóm, cột để so sánh một giá trị tổng hợp giữa các nhóm, phân tán (scatter) cho hai biến liên tục và bản đồ nhiệt (heatmap) cho ma trận tương quan.
+  \item \textbf{Dùng trung vị thay cho trung bình} khi tổng hợp giá theo nhóm, vì giá lệch phải (Phép 1).
+  \item \textbf{Biểu đồ của tập con nói rõ đã bỏ gì}: biểu đồ phân tán dùng mẫu ngẫu nhiên tối đa 4,000 điểm (cố định \texttt{random\_state=42}) trong 13,580 dòng; biểu đồ hộp ẩn các điểm ngoại lai để so sánh hộp rõ hơn.
+  \item \textbf{Biểu đồ cột bắt đầu từ 0}, không cắt trục để làm chênh lệch trông lớn hơn.
 \end{itemize}
-Tất cả hình trong chương được sinh bằng chương trình \texttt{report/make\_figures.py} từ dữ liệu thật, không dựng tay; chạy lại chương trình này sẽ cho lại đúng các hình.
+Tất cả hình trong báo cáo được sinh bằng chương trình \texttt{report/make\_figures.py} từ dữ liệu thật, không dựng tay; chạy lại chương trình này sẽ cho lại đúng các hình.
 
-\section{Các biểu đồ}\label{sec:bieudo}
-Báo cáo trình bày bảy biểu đồ thuộc sáu dạng khác nhau: histogram, hộp, cột (hai biểu đồ), đường, phân tán và heatmap. Sáu trong bảy biểu đồ có trong tab Phân tích của ứng dụng; riêng biểu đồ theo số phòng chỉ có trong báo cáo.
+\section{Các biểu đồ phân tích}\label{sec:bieudo}
+Báo cáo trình bày năm biểu đồ phân tích thuộc năm dạng khác nhau (histogram, hộp, cột, phân tán, heatmap), cùng hai biểu đồ chẩn đoán mô hình ở Chương~\ref{ch:mohinh}.
 
 \subsection{Phân phối giá (histogram)}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.82\linewidth]{f_price_hist.png}
-\caption{Phân phối giá nhà (histogram 60 khoảng). Trái: giá gốc (triệu AUD); phải: logarit tự nhiên của giá (giá tính bằng AUD). Trục tung là số giao dịch.}\label{fig:hist}
+\includegraphics[width=0.82\linewidth]{01_price_distribution.png}
+\caption{Phân phối giá bán nhà (histogram 45 khoảng kèm đường mật độ). Trục hoành là giá (AUD, ký hiệu $\times 10^{6}$), trục tung là số giao dịch.}\label{fig:hist}
 \end{figure}
-\textbf{Cách đọc:} ở hình trái, phần lớn giao dịch tập trung dưới 2 triệu AUD, đỉnh nằm quanh 0.7--0.9 triệu và đuôi phải kéo dài đến 9 triệu. Ở hình phải, sau khi lấy logarit, phân phối có dạng chuông gần đối xứng quanh 13.7 (tương ứng giá trung vị 903,000). Độ lệch giảm từ 2.24 xuống 0.18 (Phép 1). \textbf{Ý nghĩa:} dùng log của giá làm mục tiêu để đuôi phải ít ảnh hưởng đến việc huấn luyện.
+\textbf{Cách đọc:} phần lớn giao dịch tập trung dưới 2 triệu AUD, đỉnh nằm quanh 0.7--0.9 triệu và đuôi phải kéo dài đến 9 triệu. \textbf{Ý nghĩa:} phân phối lệch phải rõ (độ lệch 2.24, Phép 1) nên trung vị phản ánh mức giá điển hình tốt hơn trung bình, và mô hình Random Forest được huấn luyện trên log của giá để đuôi phải ít ảnh hưởng.
 
 \subsection{Giá theo loại nhà (hộp)}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.82\linewidth]{f_type_box.png}
-\caption{Phân phối giá theo loại nhà (boxplot, không hiển thị điểm ngoại lai). Trục tung là giá tính bằng triệu AUD.}\label{fig:typebox}
+\includegraphics[width=0.82\linewidth]{02_price_by_type_boxplot.png}
+\caption{Phân phối giá theo loại nhà (boxplot, không hiển thị điểm ngoại lai). Trục tung là giá (AUD, ký hiệu $\times 10^{6}$); \texttt{h}: nhà riêng, \texttt{t}: nhà liền kề, \texttt{u}: căn hộ.}\label{fig:typebox}
 \end{figure}
-\textbf{Cách đọc:} đường giữa hộp là trung vị, hai cạnh hộp là Q1 và Q3. Nhà riêng có hộp cao nhất và rộng nhất; hộp của căn hộ và nhà liền kề thấp hơn và hẹp hơn. Trung vị lần lượt là 1,080,000 (nhà riêng), 846,750 (liền kề) và 560,000 (căn hộ), khớp Bảng~\ref{tab:loainha}. \textbf{Ý nghĩa:} loại nhà là đặc trưng phân biệt giá mạnh nhất trong các biến phân loại.
+\textbf{Cách đọc:} đường giữa hộp là trung vị, hai cạnh hộp là Q1 và Q3. Nhà riêng có hộp cao nhất và rộng nhất; hộp của nhà liền kề và căn hộ thấp hơn và hẹp hơn. Trung vị lần lượt là 1,080,000 (nhà riêng), 846,750 (liền kề) và 560,000 (căn hộ), khớp Bảng~\ref{tab:loainha}. \textbf{Ý nghĩa:} loại nhà là một đặc trưng phân biệt giá mạnh; nhà riêng vừa đắt hơn vừa phân tán hơn.
 
 \subsection{Giá theo vùng (cột ngang)}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.82\linewidth]{f_region.png}
-\caption{Giá trung vị theo vùng (triệu AUD), sắp xếp từ thấp đến cao; thanh dài hơn là vùng đắt hơn.}\label{fig:region}
+\includegraphics[width=0.82\linewidth]{03_median_price_by_region.png}
+\caption{Giá trung vị theo khu vực (AUD, ký hiệu $\times 10^{6}$), sắp xếp từ cao xuống thấp.}\label{fig:region}
 \end{figure}
-\textbf{Cách đọc:} Southern Metropolitan (1,250,000) dài nhất, Western Victoria (400,000) ngắn nhất. Ba vùng Victoria ngoài đô thị có 32--53 giao dịch nên thanh của chúng kém tin cậy (Bảng~\ref{tab:vung}); biểu đồ không thể hiện điều này, vì vậy cần đọc kèm bảng. \textbf{Ý nghĩa:} vùng ảnh hưởng đến giá, nhưng khác biệt chủ yếu là ở nhà riêng (Phép 7).
-
-\subsection{Giá theo số phòng (cột)}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.82\linewidth]{f_rooms.png}
-\caption{Giá trung vị theo số phòng (triệu AUD); $n$ là số giao dịch của từng nhóm.}\label{fig:rooms}
-\end{figure}
-\textbf{Cách đọc:} cột tăng đều từ 385,000 (1 phòng) đến 1,800,000 (6 phòng), nhưng bước tăng nhỏ dần và cột 6 phòng chỉ có $n=67$. \textbf{Ý nghĩa:} số phòng là đặc trưng số có quan hệ đơn điệu rõ với giá (Bảng~\ref{tab:sophong}).
-
-\subsection{Giá theo quý (đường)}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.82\linewidth]{f_trend.png}
-\caption{Giá trung vị theo quý (triệu AUD), chỉ vẽ các quý có từ 200 giao dịch; số trên mỗi điểm là giá trung vị.}\label{fig:trend}
-\end{figure}
-\textbf{Cách đọc:} đường đi lên từ 860,000 (2016Q2) đến đỉnh 955,000 (2017Q1) rồi giảm còn 887,750 (2017Q3). Quý 1/2016 (28 giao dịch) không được vẽ. \textbf{Cảnh báo khi đọc:} đây là trung vị thô; sau khi điều chỉnh cơ cấu suburb và loại nhà (Phép 6), xu hướng là tăng đến đầu 2017 rồi đi ngang chứ không giảm ở 2017Q3.
+\textbf{Cách đọc:} Southern Metropolitan (1,250,000) dài nhất, Western Victoria (400,000) ngắn nhất. Ba vùng Victoria ngoài đô thị chỉ có 32--53 giao dịch nên thanh của chúng kém tin cậy (Bảng~\ref{tab:vung}); biểu đồ không thể hiện cỡ mẫu nên cần đọc kèm bảng. \textbf{Ý nghĩa:} vùng ảnh hưởng đến giá, nhưng lẫn với cơ cấu loại nhà (Phép 3).
 
 \subsection{Giá và khoảng cách (phân tán)}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.82\linewidth]{f_distance.png}
-\caption{Giá và khoảng cách đến trung tâm. Mỗi điểm là một giao dịch (mẫu ngẫu nhiên 3,000 điểm); trục tung giới hạn 0--5 triệu AUD.}\label{fig:distance}
+\includegraphics[width=0.82\linewidth]{04_price_vs_distance.png}
+\caption{Khoảng cách đến trung tâm (CBD) và giá bán. Mỗi điểm là một giao dịch (mẫu ngẫu nhiên 4,000 điểm). Trục tung là giá (AUD, ký hiệu $\times 10^{6}$).}\label{fig:distance}
 \end{figure}
-\textbf{Cách đọc:} các điểm tạo đám mây rộng với xu hướng đi xuống nhẹ về phía phải; hầu hết giao dịch trên 2 triệu AUD nằm trong khoảng 15 km đầu, còn ngoài 25 km hầu như đều dưới 1 triệu. Các dải điểm thẳng đứng là những suburb có cùng khoảng cách. Tương quan chung chỉ $-0.163$, nhưng riêng nhà riêng là $-0.329$ (Phép 8). \textbf{Ý nghĩa:} khoảng cách có ảnh hưởng nhưng bị loại nhà và vùng làm nhiễu; một biểu đồ gộp chung không đủ để kết luận.
+\textbf{Cách đọc:} các điểm tạo đám mây rộng với xu hướng đi xuống nhẹ về phía phải; phần lớn giao dịch trên 2 triệu AUD nằm trong khoảng 15 km đầu, còn ngoài 20 km hầu hết dưới 1.5 triệu. Các dải điểm thẳng đứng là những suburb có cùng khoảng cách. Một điểm 9,000,000 AUD ở khoảng 19 km là giao dịch Mulgrave, ngoại lai lớn nhất. \textbf{Ý nghĩa:} tương quan chung chỉ $-$0.163, nhưng riêng nhà riêng là $-$0.329 (Phép 6): khoảng cách có ảnh hưởng nhưng bị loại nhà làm nhiễu, một biểu đồ gộp chung không đủ để kết luận.
 
 \subsection{Ma trận tương quan (heatmap)}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.9\linewidth]{f_corr.png}
+\includegraphics[width=0.9\linewidth]{05_correlation_heatmap.png}
 \caption{Ma trận tương quan Pearson giữa giá và các thuộc tính số. Màu đỏ là tương quan dương, xanh là âm; số trong ô là hệ số.}\label{fig:corr}
 \end{figure}
-\textbf{Cách đọc:} hàng ``Price'' cho thấy Rooms (0.50), Bathroom (0.47), BuildingArea (0.37) và HouseAge (0.33) liên hệ dương với giá; Distance ($-0.16$) liên hệ âm yếu. Các ô ngoài hàng ``Price'' cho thấy tương quan giữa các thuộc tính đầu vào (ví dụ Rooms--Bathroom 0.59). \textbf{Ý nghĩa:} thuộc tính đầu vào chồng lấn nhau, và hệ số Pearson đánh giá thấp quan hệ phi tuyến như của \texttt{BuildingArea} (Phép 5).
-
-\section{Cách hiển thị trong ứng dụng Streamlit}\label{sec:streamlit}
-Các biểu đồ và bảng thống kê ở trên cũng được hiển thị trong tab \emph{Phân tích dữ liệu} của ứng dụng Streamlit. Tab này gọi lại chính các hàm của \texttt{analysis.py} nên số liệu khớp với báo cáo, và xem được mà không cần đăng nhập. Ứng dụng không phải trọng tâm của báo cáo nên chỉ minh họa bằng hai ảnh chụp màn hình.
-
-\anhchup{tab-phan-tich-tong-quan.png}{Tab \emph{Phân tích dữ liệu}: thẻ tổng quan và các nhận xét tự sinh từ dữ liệu.}{fig:app-tongquan}
-
-\anhchup{tab-phan-tich-bieu-do.png}{Tab \emph{Phân tích dữ liệu}: lưới biểu đồ và các bảng thống kê theo loại nhà, vùng, khoảng cách.}{fig:app-bieudo}
-
-Hai hình trên là khung giữ chỗ cho ảnh chụp màn hình thật. Để chèn ảnh, chạy ứng dụng (Phụ lục~\ref{pl:taile}), chụp tab Phân tích dữ liệu và lưu hai tệp với đúng tên ghi trong khung vào \texttt{report/screenshots/}; khung tự được thay bằng ảnh khi biên dịch lại. Báo cáo không dùng ảnh dựng sẵn hay ảnh giả.
+\textbf{Cách đọc:} hàng \texttt{Price} cho thấy \texttt{Rooms} (0.50), \texttt{Bedroom2} (0.48) và \texttt{Bathroom} (0.47) liên hệ dương với giá, \texttt{YearBuilt} ($-$0.33) và \texttt{Distance} ($-$0.16) liên hệ âm. Các ô ngoài hàng \texttt{Price} cho thấy thuộc tính đầu vào chồng lấn nhau, nổi bật là \texttt{Rooms}--\texttt{Bedroom2} (0.94). \textbf{Ý nghĩa và cảnh báo:} ô \texttt{BuildingArea} (0.09) và \texttt{Landsize} (0.04) gần như trắng vì ngoại lai diện tích (Phép 6, Bảng~\ref{tab:nhay}): hệ số Pearson bị một giá trị phi thực tế kéo xuống, nên không được đọc thành ``diện tích không liên quan đến giá''. Ngoài ra \texttt{Landsize} và \texttt{BuildingArea} tương quan 0.50 với nhau, và hệ số Pearson nói chung đánh giá thấp các quan hệ phi tuyến.

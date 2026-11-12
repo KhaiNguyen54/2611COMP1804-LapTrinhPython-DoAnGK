@@ -34,7 +34,7 @@ Chỉ tiêu & Giá trị \\
 \midrule
 Số bản ghi (giao dịch) & 13,580 \\
 Số thuộc tính (cột) trong tệp gốc & 21 \\
-Số thuộc tính sau khi thêm biến dẫn xuất (\texttt{SaleMonth}, \texttt{HouseAge}) & 23 \\
+Số thuộc tính sau làm sạch (thêm 4 cờ thiếu, \texttt{SaleYear}, \texttt{SaleMonth}) & 27 \\
 Khoảng thời gian bán & 28/01/2016 -- 23/09/2017 \\
 Số suburb & 314 \\
 Số mã bưu chính (\texttt{Postcode}) & 198 \\
@@ -50,10 +50,10 @@ Số dòng trùng lặp hoàn toàn & 0 \\
 
 Bộ dữ liệu vượt xa quy mô tối thiểu mà đề tài yêu cầu (khoảng 500 bản ghi và 5 thuộc tính). Về cơ cấu, nhà riêng (\texttt{h}) chiếm 69.6\% số dòng (9,449 dòng), căn hộ (\texttt{u}) 22.2\% (3,017 dòng) và nhà liền kề (\texttt{t}) 8.2\% (1,114 dòng). Theo vùng, Southern Metropolitan chiếm 34.6\%, Northern Metropolitan 28.6\%, Western Metropolitan 21.7\% và Eastern Metropolitan 10.8\%; ba vùng Victoria (Eastern, Northern, Western) cộng lại chỉ có 126 dòng (0.9\%).
 
-Về thời gian, dữ liệu trải trên 19 tháng có giao dịch nhưng không liên tục. Không có giao dịch nào trong tháng 3/2016 và tháng 1/2017; tháng 1/2016 chỉ có 2 giao dịch và tháng 2/2016 có 26 giao dịch, trong khi các tháng còn lại có từ 318 đến 1,536 giao dịch. Do đó quý 1/2016 gần như trống (28 giao dịch) và mọi so sánh theo thời gian cần đọc thận trọng (mục~\ref{sec:xuhuong}).
+Về thời gian, dữ liệu trải trên 19 tháng có giao dịch nhưng không liên tục. Không có giao dịch nào trong tháng 3/2016 và tháng 1/2017; tháng 1/2016 chỉ có 2 giao dịch và tháng 2/2016 có 26 giao dịch, trong khi các tháng còn lại có từ 318 đến 1,536 giao dịch. Do đó quý 1/2016 gần như trống (28 giao dịch) và mọi so sánh theo thời gian cần đọc thận trọng (Phép 7, mục~\ref{sec:p7}).
 
 \section{Từ điển dữ liệu: ý nghĩa và kiểu từng cột}\label{sec:tudien}
-Bảng~\ref{tab:tudien} mô tả 21 cột của tệp gốc. Ý nghĩa các cột theo cách hiểu thông dụng của bộ dữ liệu Melbourne Housing; đơn vị mét vuông của \texttt{Landsize} và \texttt{BuildingArea} được suy ra từ phân phối giá trị (trung vị sau làm sạch lần lượt là 533 và 126), vì tệp không kèm mô tả đơn vị. Tên hai cột \texttt{Lattitude} và \texttt{Longtitude} bị viết sai chính tả ngay từ tệp gốc và được giữ nguyên để không sửa dữ liệu thô.
+Bảng~\ref{tab:tudien} mô tả 21 cột của tệp gốc và vai trò của từng cột trong \texttt{train\_model.py}. Ý nghĩa các cột theo cách hiểu thông dụng của bộ dữ liệu Melbourne Housing; đơn vị mét vuông của \texttt{Landsize} và \texttt{BuildingArea} được suy ra từ phân phối giá trị (trung vị lần lượt là 440 và 126), vì tệp không kèm mô tả đơn vị. Tên hai cột \texttt{Lattitude} và \texttt{Longtitude} bị viết sai chính tả ngay từ tệp gốc và được giữ nguyên để không sửa dữ liệu thô.
 
 {\small
 \begin{longtable}{@{}l l L{6.6cm} L{3.1cm}@{}}
@@ -71,26 +71,26 @@ Cột & Kiểu & Ý nghĩa & Vai trò \\
 \endfoot
 \bottomrule
 \endlastfoot
-\texttt{Suburb} & chuỗi & Tên suburb nơi căn nhà tọa lạc (314 giá trị) & Dùng, mã hóa mục tiêu \\
-\texttt{Address} & chuỗi & Địa chỉ căn nhà; 13,378 giá trị khác nhau trên 13,580 dòng & Loại (gần như định danh) \\
+\texttt{Suburb} & chuỗi & Tên suburb nơi căn nhà tọa lạc (314 giá trị) & Dùng (one-hot) \\
+\texttt{Address} & chuỗi & Địa chỉ căn nhà; 13,378 giá trị khác nhau trên 13,580 dòng & Không dùng (gần như định danh) \\
 \texttt{Rooms} & số nguyên & Số phòng (từ 1 đến 10) & Dùng \\
 \texttt{Type} & chuỗi & Loại nhà: \texttt{h} nhà riêng, \texttt{t} nhà liền kề, \texttt{u} căn hộ (unit, duplex) & Dùng \\
 \texttt{Price} & số thực & Giá bán, đơn vị AUD (85,000 đến 9,000,000) & Biến mục tiêu \\
-\texttt{Method} & chuỗi & Phương thức bán: \texttt{S}, \texttt{SP}, \texttt{PI}, \texttt{VB}, \texttt{SA} & Loại (chỉ biết sau khi bán) \\
-\texttt{SellerG} & chuỗi & Đại lý bán (268 giá trị) & Loại (chỉ biết sau khi bán) \\
-\texttt{Date} & chuỗi & Ngày bán, định dạng \texttt{dd/mm/yyyy}, đọc thành kiểu ngày & Dùng để chia tập và tạo \texttt{SaleMonth} \\
+\texttt{Method} & chuỗi & Phương thức bán: \texttt{S}, \texttt{SP}, \texttt{PI}, \texttt{VB}, \texttt{SA} & Dùng (chỉ biết sau khi bán, xem mục~\ref{sec:hanche}) \\
+\texttt{SellerG} & chuỗi & Đại lý bán (268 giá trị) & Không dùng \\
+\texttt{Date} & chuỗi & Ngày bán, định dạng \texttt{dd/mm/yyyy}, đọc thành kiểu ngày & Tạo \texttt{SaleYear}, \texttt{SaleMonth} \\
 \texttt{Distance} & số thực & Khoảng cách đến trung tâm thành phố, đơn vị km (0 đến 48.1) & Dùng \\
-\texttt{Postcode} & số thực & Mã bưu chính (198 giá trị), thực chất là mã nhóm & Loại (trùng thông tin suburb) \\
-\texttt{Bedroom2} & số thực & Số phòng ngủ từ một nguồn khác; trùng \texttt{Rooms} ở 95\% số dòng & Loại (dư thừa) \\
+\texttt{Postcode} & số thực & Mã bưu chính (198 giá trị), thực chất là mã nhóm & Dùng (one-hot) \\
+\texttt{Bedroom2} & số thực & Số phòng ngủ từ một nguồn khác; trùng \texttt{Rooms} ở 95\% số dòng & Dùng \\
 \texttt{Bathroom} & số thực & Số phòng tắm & Dùng \\
-\texttt{Car} & số thực & Số chỗ đỗ xe & Dùng \\
-\texttt{Landsize} & số thực & Diện tích đất, m\textsuperscript{2} & Dùng, \texttt{log1p} \\
-\texttt{BuildingArea} & số thực & Diện tích xây dựng, m\textsuperscript{2} & Dùng, \texttt{log1p} \\
-\texttt{YearBuilt} & số thực & Năm xây dựng & Dùng; tạo \texttt{HouseAge} \\
-\texttt{CouncilArea} & chuỗi & Hội đồng địa phương quản lý khu vực (33 giá trị, 10.1\% thiếu) & Dùng, mã hóa mục tiêu \\
+\texttt{Car} & số thực & Số chỗ đỗ xe & Dùng, thêm cờ thiếu \\
+\texttt{Landsize} & số thực & Diện tích đất, m\textsuperscript{2} & Dùng \\
+\texttt{BuildingArea} & số thực & Diện tích xây dựng, m\textsuperscript{2} & Dùng, thêm cờ thiếu \\
+\texttt{YearBuilt} & số thực & Năm xây dựng & Dùng, thêm cờ thiếu \\
+\texttt{CouncilArea} & chuỗi & Hội đồng địa phương quản lý khu vực (33 giá trị, 10.1\% thiếu) & Dùng (one-hot), thêm cờ thiếu \\
 \texttt{Lattitude} & số thực & Vĩ độ & Dùng \\
 \texttt{Longtitude} & số thực & Kinh độ & Dùng \\
-\texttt{Regionname} & chuỗi & Vùng của thành phố (8 giá trị) & Dùng, one-hot \\
+\texttt{Regionname} & chuỗi & Vùng của thành phố (8 giá trị) & Dùng (one-hot) \\
 \texttt{Propertycount} & số thực & Số bất động sản trong suburb & Dùng \\
 \end{longtable}
 }
@@ -99,8 +99,8 @@ Kiểu trong bảng là kiểu Pandas khi đọc tệp: 8 cột chuỗi, 1 cột
 
 \section{Nguyên tắc giữ dữ liệu thô nguyên vẹn trong \texttt{data/}}\label{sec:nguyenven}
 \begin{itemize}[nosep]
-  \item Tệp \texttt{data/melb\_data.csv} giữ đúng như khi tải về; không sửa tay, không ghi đè. Mọi chương trình chỉ đọc tệp này.
-  \item Mọi biến đổi (làm sạch, thêm biến, chia tập, mã hóa) thực hiện bằng mã trong \texttt{ml\_pipeline/features.py} và các bước \texttt{02\_prep.py}; kết quả trung gian (các tệp train, validation, test) được ghi riêng vào \texttt{ml\_pipeline/data/} và có thể tạo lại bất cứ lúc nào bằng lệnh chạy lại bước đó.
-  \item Làm sạch không xóa dòng nào: các giá trị không hợp lệ được chuyển thành giá trị thiếu để bước tiền xử lý xử lý có kiểm soát (mục~\ref{sec:quytac}).
-  \item Dữ liệu thô nằm ở \texttt{data/}, tách khỏi thư mục mã \texttt{ml\_pipeline/}, nên mã có thể thay đổi thoải mái mà không động tới bản gốc.
+  \item Tệp \texttt{data/melb\_data.csv} giữ đúng như khi tải về; không sửa tay, không ghi đè. \texttt{pipeline.py} chỉ đọc tệp này.
+  \item Mọi biến đổi (làm sạch, thêm biến) thực hiện bằng mã trong \texttt{pipeline.py}; kết quả được ghi riêng vào thư mục \texttt{outputs/} (dữ liệu sau làm sạch là \texttt{outputs/melb\_data\_clean.csv}) và có thể tạo lại bất cứ lúc nào bằng lệnh \texttt{python pipeline.py}.
+  \item Làm sạch chỉ loại dòng trùng hoàn toàn và dòng không có giá hợp lệ; với tệp này cả hai đều bằng 0 nên không dòng nào bị xóa. Các giá trị không hợp lệ khác được chuyển thành giá trị thiếu thay vì xóa dòng (mục~\ref{sec:quytac}).
+  \item Dữ liệu thô nằm ở \texttt{data/}, tách khỏi thư mục kết quả \texttt{outputs/}, nên chạy lại mã không động tới bản gốc.
 \end{itemize}
