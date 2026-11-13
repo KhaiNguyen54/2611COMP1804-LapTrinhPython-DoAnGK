@@ -1,81 +1,126 @@
-\chapter{Kết luận}\label{ch:ketluan}
+\chapter{Mô hình hồi quy dự đoán giá}\label{ch:mohinh}
 
-\section{Các nhận xét chính từ dữ liệu}\label{sec:nhanxet}
-Từ chín phép phân tích ở Chương~\ref{ch:phantich}, báo cáo rút ra bảy nhận xét. Mỗi nhận xét dẫn số liệu cụ thể và chỉ ra phép phân tích là nguồn của nó.
-\begin{enumerate}
-  \item \textbf{Loại nhà là yếu tố phân biệt giá mạnh nhất.} Giá trung vị của nhà riêng là 1,080,000 AUD, gấp 1.9 lần căn hộ (560,000); nhà liền kề ở giữa với 846,750 (Phép 2).
-  \item \textbf{Vị trí tạo ra chênh lệch giá rất lớn, nhưng chủ yếu ở nhà riêng.} Suburb đắt nhất trong nhóm có từ 30 giao dịch (Albert Park, 1,900,000) gấp 3.9 lần suburb rẻ nhất (Werribee, 490,000). Giữa các vùng, nhà riêng ở Southern Metropolitan (1,650,000) gấp 1.9 lần ở Western Metropolitan (869,000), trong khi căn hộ chỉ chênh 1.3 lần (610,000 so với 460,000) (Phép 3, 7).
-  \item \textbf{Khoảng cách đến trung tâm có ảnh hưởng, nhưng nếu chỉ nhìn số liệu gộp thì bị đánh giá thấp.} Tương quan giá--khoảng cách chung chỉ $-$0.163. Với nhà riêng nó gấp đôi ($-$0.329) và giá trung vị giảm 47\% từ 1,350,000 (trong 5 km) xuống 710,000 (trên 20 km), còn căn hộ gần như không đổi. Lý do là căn hộ rẻ nhưng tập trung ở gần trung tâm (42.7\% giao dịch trong 5 km đầu so với 5.3\% ở trên 20 km) (Phép 8).
-  \item \textbf{Quy mô căn nhà có quan hệ đơn điệu rõ với giá.} Nhà 4 phòng có giá trung vị 1,285,000, gấp 3.3 lần nhà 1 phòng (385,000). Diện tích xây có Spearman 0.636 với giá, cao nhất trong các thuộc tính số, nhưng thuộc tính này thiếu 47.6\% giá trị (Phép 5, 8).
-  \item \textbf{Giá lệch phải mạnh và phân khúc cao cấp khác hẳn phần còn lại.} Độ lệch của giá là 2.24 (0.18 sau khi lấy log); 18.7\% giao dịch từ 1,500,000 trở lên, trong đó 69\% ở Southern Metropolitan và 94.7\% là nhà riêng với diện tích xây trung vị 203 m\textsuperscript{2}, so với 76 m\textsuperscript{2} ở phân khúc dưới 600,000 (Phép 1, 9).
-  \item \textbf{Trung vị thô theo thời gian che mất xu hướng.} Trung vị theo quý đi ngang trong khoảng 860,000--955,000, nhưng sau khi điều chỉnh cơ cấu suburb và loại nhà, giá tăng khoảng 10\% từ 2016Q2 (0.931) đến 2017Q1 (1.028) rồi ổn định quanh 1.02. Điểm trũng tháng 7/2017 (755,000) chủ yếu là hiệu ứng cơ cấu: chỉ số điều chỉnh của tháng đó vẫn là 1.001 (Phép 4, 6).
-  \item \textbf{Dữ liệu thiếu mang thông tin.} Có 1,939 dòng có \texttt{Landsize} bằng 0, trong đó 1,629 dòng là căn hộ (54\% số căn hộ). Các dòng thiếu diện tích đất có giá trung vị 560,000, so với 973,250 ở các dòng có giá trị; nói cách khác ``thiếu'' ở đây gần như đồng nghĩa với ``căn hộ'' và không nên bị coi là nhiễu ngẫu nhiên (Chương~\ref{ch:lamsach}).
-\end{enumerate}
+Chương này trình bày phần học máy do \texttt{train\_model.py} thực hiện: chọn đặc trưng, chia tập, so sánh mô hình bằng tập validation, chấm điểm mô hình đã chọn trên tập test và phân tích sai số. Các số đo mô hình lấy từ \texttt{outputs/model\_metrics.csv} và \texttt{outputs/model\_validation\_metrics.csv} do chương trình ghi ra; các số bổ sung (MAPE, sai số theo phân khúc) tính từ \texttt{outputs/test\_predictions.csv} bằng đoạn mã ở Phụ lục~\ref{pl:taile}.
 
-\section{Hàm ý cho bước mô hình hóa}\label{sec:hamy}
-Phần này chuyển các nhận xét trên thành quyết định cho mô hình dự đoán giá của dự án (chi tiết huấn luyện nằm ở \texttt{ml\_pipeline/PIPELINE.md}).
+\section{Thiết lập bài toán}\label{sec:thietlap}
+Biến mục tiêu là \texttt{Price} (AUD); dữ liệu đầu vào là tệp \texttt{outputs/melb\_data\_clean.csv} do \texttt{pipeline.py} tạo ra (13,580 dòng). Mô hình dùng 23 đặc trưng:
+\begin{itemize}[nosep]
+  \item 17 đặc trưng số: \texttt{Rooms}, \texttt{Bedroom2}, \texttt{Bathroom}, \texttt{Car}, \texttt{Distance}, \texttt{Landsize}, \texttt{BuildingArea}, \texttt{YearBuilt}, \texttt{Lattitude}, \texttt{Longtitude}, \texttt{Propertycount}, bốn cờ \texttt{*\_was\_missing}, \texttt{SaleYear}, \texttt{SaleMonth};
+  \item 6 đặc trưng phân loại: \texttt{Suburb}, \texttt{Type}, \texttt{Method}, \texttt{Postcode}, \texttt{CouncilArea}, \texttt{Regionname}.
+\end{itemize}
+Hai cột \texttt{Address} và \texttt{SellerG} bị loại vì có quá nhiều giá trị (13,378 địa chỉ và 268 đại lý) khiến mô hình ghi nhớ từng tin đăng thay vì khái quát. Bước tiền xử lý (điền thiếu bằng trung vị hoặc giá trị phổ biến nhất, chuẩn hóa, one-hot) nằm trong \texttt{Pipeline} nên chỉ học từ tập train (mục~\ref{sec:chia}).
 
-\subsection{Mục tiêu và đặc trưng nên dùng}
-Bảng~\ref{tab:dactrung} liệt kê các nhóm đặc trưng giữ lại và bằng chứng từ phân tích.
-
+\section{Các mô hình được so sánh}\label{sec:cacmohinh}
 \begin{table}[H]
 \centering
-\caption{Đặc trưng nên dùng và căn cứ từ phân tích dữ liệu}\label{tab:dactrung}
+\caption{Baseline và hai mô hình ứng viên}\label{tab:cacmohinh}
 \small
-\begin{tabular}{@{}L{3.6cm} L{3.6cm} L{6.6cm}@{}}
+\begin{tabular}{@{}l L{6.4cm} L{4.2cm}@{}}
 \toprule
-Nhóm & Cách xử lý & Căn cứ \\
+Mô hình & Cấu hình & Biến mục tiêu huấn luyện \\
 \midrule
-Mục tiêu \texttt{Price} & Dự đoán log(giá), báo cáo lại bằng AUD & Độ lệch 2.24 giảm còn 0.18 (Phép 1) \\
-\texttt{Type}, \texttt{Regionname} & One-hot & Ít giá trị (3 và 8) và phân biệt giá mạnh (Phép 2, 3); tương tác với nhau (Phép 7) \\
-\texttt{Suburb}, \texttt{CouncilArea} & Target encoding, chỉ học trên train & Suburb có 314 giá trị, 59 suburb dưới 5 giao dịch; chênh giá 3.9 lần (Phép 3) \\
-\texttt{Rooms}, \texttt{Bathroom}, \texttt{Car} & Số, điền thiếu bằng trung vị & Rooms 0.497, Bathroom 0.469 (Phép 5, 8) \\
-\texttt{Distance}, \texttt{Lattitude}, \texttt{Longtitude} & Số & Distance có ảnh hưởng rõ khi tách loại nhà (Phép 8); tọa độ giúp mô hình học vị trí chi tiết \\
-\texttt{Landsize}, \texttt{BuildingArea} & \texttt{log1p}, điền trung vị và thêm cờ ``đã thiếu'' & Lệch phải, có ngoại lai; thiếu mang thông tin (nhận xét 7) \\
-\texttt{YearBuilt}, \texttt{HouseAge}, \texttt{SaleMonth} & Số, thêm cờ thiếu & Tuổi nhà tương quan 0.332 với giá, gián tiếp qua suburb và loại nhà (Phép 5); tháng bán cho mô hình bắt mức giá theo giai đoạn (Phép 6) \\
+Baseline (\texttt{DummyRegressor}) & Luôn dự đoán trung vị giá của tập train & Giá gốc \\
+Ridge & \texttt{alpha=10}, \texttt{solver="lsqr"} & Giá gốc (AUD) \\
+Random Forest & 100 cây, \texttt{min\_samples\_leaf=2}, \texttt{max\_features=0.9}, \texttt{random\_state=42} & $\log(1+\text{giá})$, dự đoán được chuyển ngược về AUD \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Các cột bị loại và cột nghi rò rỉ}
-Rò rỉ (leakage) là việc mô hình dùng thông tin chỉ có sau khi giao dịch xảy ra hoặc thông tin gián tiếp chứa đáp án. Dự án chọn thời điểm dự đoán là \emph{lúc định giá}, nên chỉ dùng thuộc tính của căn nhà, vị trí và tháng bán.
-\begin{itemize}[nosep]
-  \item \texttt{Method} (phương thức bán) và \texttt{SellerG} (đại lý bán): chỉ biết khi quá trình bán đã diễn ra, và \texttt{Method} liên hệ với giá (trung vị phương thức \texttt{SP} là 770,000, thấp hơn \texttt{S} là 925,000). Đây là hai cột \emph{nghi rò rỉ} chính, bị loại.
-  \item \texttt{Address}: gần như định danh (13,378 giá trị khác nhau trên 13,580 dòng), mô hình sẽ ghi nhớ thay vì khái quát.
-  \item \texttt{Bedroom2}: trùng \texttt{Rooms} ở 95\% số dòng (tương quan 0.944), dư thừa.
-  \item \texttt{Postcode}: trùng thông tin với suburb (198 mã so với 314 suburb).
-  \item Các thống kê dùng để điền thiếu, chuẩn hóa và target encoding chỉ được học từ tập train; nếu học trên toàn bộ dữ liệu thì thông tin giá của tập kiểm tra sẽ rò vào mô hình qua suburb. Chỉ số điều chỉnh ở Phép 6 dùng trung vị trên toàn bộ dữ liệu nên \emph{chỉ để mô tả}, không được đưa vào mô hình.
-\end{itemize}
+Baseline cho biết mức sai số khi không dùng thuộc tính nào; mô hình chỉ có ích nếu vượt xa mức này. Việc Random Forest học trên log của giá còn Ridge học trên giá gốc là sự khác biệt về cấu hình, nên so sánh giữa hai mô hình này không phân biệt được đóng góp của loại mô hình với đóng góp của biến đổi log.
 
-\subsection{Phân khúc khó dự đoán và rủi ro dịch chuyển}
-\begin{itemize}[nosep]
-  \item \textbf{Nhà từ 1,500,000 trở lên} (18.7\% dữ liệu, tối đa 9,000,000): phân tán lớn (hệ số biến thiên của nhà riêng 0.54), ít mẫu ở đuôi và các giá trị cực đoan như căn 9,000,000 ở Mulgrave. Phân khúc này cần được theo dõi riêng khi đánh giá mô hình.
-  \item \textbf{Phân khúc dưới 600,000} (19.6\%, 64.2\% là căn hộ): căn hộ có diện tích xây và đất thiếu nhiều, khoảng cách ít giải thích giá (Phép 8), nên khó dự đoán chính xác theo tỷ lệ.
-  \item \textbf{Ba vùng Victoria ngoài đô thị} (32--53 giao dịch mỗi vùng) và các suburb thưa (59 suburb có dưới 5 dòng): kết quả không ổn định. Suburb chưa từng xuất hiện ở tập train phải được xử lý bằng giá trị mặc định của target encoding.
-  \item \textbf{Dịch chuyển theo thời gian}: giá trung vị của ba tập là 910,000 (train), 816,000 (validation) và 1,001,000 (test),, tức mô hình huấn luyện trên giai đoạn cũ phải dự đoán ở mặt bằng giá khác. Đây là lý do dùng chia theo thời gian thay vì chia ngẫu nhiên: chia ngẫu nhiên sẽ che giấu rủi ro này và cho kết quả lạc quan.
-\end{itemize}
-
-\section{Hạn chế và hướng cải thiện}\label{sec:hanche}
-Bảng~\ref{tab:hanche} nêu các hạn chế của dữ liệu và cách làm, cùng hướng cải thiện tương ứng.
+\section{Chọn mô hình bằng validation}\label{sec:chonmohinh}
+Hai mô hình được huấn luyện trên tập train (8,691 dòng) và đo trên tập validation (2,173 dòng). Mô hình có MAE thấp nhất trên validation được chọn (Bảng~\ref{tab:validation}); tập test không tham gia bước này.
 
 \begin{table}[H]
 \centering
-\caption{Hạn chế và hướng cải thiện}\label{tab:hanche}
+\caption{Kết quả trên tập validation (đơn vị AUD)}\label{tab:validation}
 \small
-\begin{tabular}{@{}L{7.0cm} L{6.7cm}@{}}
+\begin{tabular}{@{}l r r r@{}}
 \toprule
-Hạn chế & Hướng cải thiện \\
+Mô hình & MAE & RMSE & $R^2$ \\
 \midrule
-Giai đoạn ngắn và có khoảng trống: 19 tháng có giao dịch, quý 1/2016 chỉ có 28 giao dịch, không có giao dịch tháng 3/2016 và tháng 1/2017. Không tách được mùa vụ khỏi xu hướng. & Thu thêm dữ liệu nhiều năm, đủ các tháng; khi đó mới ước lượng được mùa vụ và đánh giá mô hình qua nhiều chu kỳ giá. \\
-Chỉ có các căn đã bán (thiên lệch chọn mẫu): không biết những căn không bán được. & Bổ sung dữ liệu niêm yết nếu có; nêu rõ phạm vi áp dụng của mô hình. \\
-Giá danh nghĩa và không có biến vĩ mô (lãi suất, thu nhập, nguồn cung) nên không giải thích được diễn biến theo thời gian. & Thêm chuỗi vĩ mô theo tháng, hoặc quy đổi giá về một chỉ số giá nhà chung. \\
-Dữ liệu thiếu nhiều: \texttt{BuildingArea} 47.6\%, \texttt{YearBuilt} 39.6\% (căn hộ gần như không có \texttt{Landsize}). & Thu thập thêm từ nguồn khác; điền thiếu theo suburb và loại nhà thay vì một trung vị chung (đã thêm cờ ``thiếu''). \\
-Vùng và suburb thưa dữ liệu (ba vùng dưới 54 giao dịch; 59 suburb dưới 5 dòng). & Gộp nhóm nhỏ hoặc dùng mô hình phân cấp; target encoding hiện đã làm mịn một phần. \\
-Vị trí chỉ có khoảng cách đến trung tâm và tọa độ, chưa có tiện ích (ga, trường học, công viên). & Thêm đặc trưng từ dữ liệu mở về giao thông và tiện ích. \\
-Phân khúc cao cấp ít mẫu, sai số lớn; sai số hiện tại chưa đủ để định giá thay chuyên gia. & Dùng khoảng dự đoán hoặc hồi quy phân vị; đối chiếu với thẩm định thực tế. \\
-Dữ liệu gốc được cào từ tin đăng công khai trên domain.com.au (Chương~\ref{ch:nguon}) nên có thể chứa sai lệch của tin đăng; đơn vị m\textsuperscript{2} của diện tích được suy ra chứ không có mô tả chính thức. & Đối chiếu thêm nguồn khác khi có thể; liên hệ tác giả bộ dữ liệu để xác nhận đơn vị. Chia sẻ lại dữ liệu phải theo CC BY-NC-SA 4.0 (ghi công, phi thương mại, chia sẻ tương tự). \\
+Random Forest (log giá) & 154,865 & 259,176 & 0.8148 \\
+Ridge & 231,137 & 334,080 & 0.6923 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Ngoài ra, hàm thống kê theo khoảng cách (\texttt{stats\_by\_distance}) dùng khoảng mở ở cận dưới nên bỏ qua 6 dòng có khoảng cách bằng 0 (6 trên 13,580 dòng). Sai lệch nhỏ này đã được ghi chú ở Phép 8 và chưa được sửa trong mã.
+Random Forest có MAE thấp hơn Ridge 33\% và được chọn. Sau khi chọn, mô hình được huấn luyện lại trên toàn bộ phần train gộp validation (10,864 dòng) rồi mới đo trên tập test.
+
+\section{Kết quả trên tập test}\label{sec:ketquatest}
+\begin{table}[H]
+\centering
+\caption{Kết quả trên tập test (2,716 dòng; đơn vị AUD)}\label{tab:test}
+\small
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+Mô hình & MAE & RMSE & $R^2$ \\
+\midrule
+Random Forest (log giá), mô hình được chọn & 156,203 & 265,501 & 0.8225 \\
+Baseline (trung vị) & 439,350 & 653,710 & $-$0.0758 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Mô hình được chọn có MAE thấp hơn baseline 64.4\% (156,203 so với 439,350) và giải thích khoảng 82\% phương sai của giá, trong khi baseline có $R^2$ hơi âm ($-$0.0758), tức tệ hơn việc dự đoán bằng trung bình của tập test; điều này bình thường, vì giá lệch phải nên trung vị thấp hơn trung bình và một mô hình luôn đoán trung vị không thể đạt $R^2$ dương. Kết quả test sát kết quả validation (MAE 156,203 so với 154,865; $R^2$ 0.8225 so với 0.8148), nghĩa là việc chọn mô hình không bị lạc quan do tập validation.
+
+Từ \texttt{outputs/test\_predictions.csv}, sai số tương đối trung bình (MAPE) là 13.7\%, sai số tương đối trung vị là 10.0\%; 50.1\% số dự đoán lệch không quá 10\% và 77.8\% lệch không quá 20\% so với giá thực. Tức là sai số điển hình khoảng một phần mười giá, nhưng MAE 156,203 AUD vẫn lớn so với mức giá trung vị 903,000.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\linewidth]{06_actual_vs_predicted.png}
+\caption{Giá thực tế và giá dự đoán trên tập test. Đường đứt đỏ là dự đoán hoàn hảo; điểm nằm dưới đường là dự đoán thấp hơn giá thực.}\label{fig:actual}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{07_residual_distribution.png}
+\caption{Phân phối sai số (thực tế trừ dự đoán) trên tập test. Sai số dương nghĩa là mô hình dự đoán thấp hơn giá thực.}\label{fig:residual}
+\end{figure}
+
+\textbf{Cách đọc:} Hình~\ref{fig:actual} cho thấy các điểm bám sát đường chéo đến khoảng 2 triệu AUD, rồi tản rộng và nằm dưới đường chéo ở các giá cao hơn 3 triệu: mô hình dự đoán thấp hơn thực tế ở các căn rất đắt. Hình~\ref{fig:residual} cho thấy sai số tập trung quanh 0 (trung vị $+$361 AUD) nhưng đuôi phải dài hơn đuôi trái (trung bình $+$30,173 AUD).
+
+\section{Phân khúc mô hình dự đoán kém}\label{sec:phankhuc}
+Bảng~\ref{tab:saiso-gia} chia tập test theo khoảng giá thực tế, Bảng~\ref{tab:saiso-loai} chia theo loại nhà. ``Lệch trung bình'' là trung bình của (thực tế trừ dự đoán): dương nghĩa là mô hình dự đoán thấp hơn thực tế.
+
+\begin{table}[H]
+\centering
+\caption{Sai số trên tập test theo khoảng giá thực tế (AUD)}\label{tab:saiso-gia}
+\small
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+Khoảng giá & Số dòng & MAE & MAPE & Lệch trung bình \\
+\midrule
+Dưới 600,000 & 520 & 71,087 & 16.0\% & $-$46,451 \\
+600,000 đến dưới 1,000,000 & 1,020 & 92,289 & 12.0\% & $-$22,179 \\
+1,000,000 đến dưới 1,500,000 & 665 & 157,964 & 13.0\% & $+$15,674 \\
+Từ 1,500,000 & 511 & 368,100 & 16.0\% & $+$231,515 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Sai số trên tập test theo loại nhà (AUD)}\label{tab:saiso-loai}
+\small
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+Loại nhà & Số dòng & MAE & MAPE & Lệch trung bình \\
+\midrule
+Nhà riêng (\texttt{h}) & 1,917 & 180,545 & 13.7\% & $+$38,193 \\
+Liền kề (\texttt{t}) & 211 & 109,692 & 12.6\% & $-$19,001 \\
+Căn hộ (\texttt{u}) & 588 & 93,533 & 14.5\% & $+$21,672 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Phân khúc yếu nhất là các căn từ 1,500,000 AUD trở lên: MAE 368,100 (gấp 5.2 lần phân khúc dưới 600,000) và mô hình dự đoán thấp hơn thực tế trung bình 231,515 AUD. Ba sai số lớn nhất đều là nhà riêng đắt bị dự đoán thấp: căn ở Kew giá thực 6,500,000 bị dự đoán 3,513,058, căn ở Parkville giá thực 3,970,000 bị dự đoán 2,032,176, căn ở Middle Park giá thực 3,750,000 bị dự đoán 1,895,453; sai lớn nhất theo chiều ngược là căn ở South Melbourne giá thực 770,000 bị dự đoán 2,558,914. Phân khúc dưới 600,000 có MAE nhỏ nhất nhưng MAPE cao nhất (16.0\%) và bị dự đoán cao hơn thực tế trung bình 46,451 AUD, vì sai số tuyệt đối nhỏ so với một mức giá thấp vẫn là tỷ lệ lớn. Theo vùng, Southern Metropolitan có MAE cao nhất (224,961) so với 112,156 đến 140,943 ở các vùng đô thị khác, một phần vì vùng này tập trung nhà đắt. Các vùng Victoria ngoài đô thị chỉ có 5 đến 16 dòng trong tập test nên không đủ để kết luận.
+
+\section{Những điều cần lưu ý khi đọc kết quả}\label{sec:luuy}
+\begin{itemize}[nosep]
+  \item \textbf{Chia ngẫu nhiên.} Tập test được chọn ngẫu nhiên từ toàn bộ giai đoạn 2016--2017 chứ không phải giai đoạn sau cùng, nên kết quả đo khả năng dự đoán một giao dịch cùng thời kỳ, không phải dự báo giá tương lai (mục~\ref{sec:chia}).
+  \item \textbf{Đặc trưng có thể quá ``dễ''.} Mô hình dùng \texttt{Method} (phương thức bán, chỉ biết khi quá trình bán đã diễn ra; trung vị giá phương thức \texttt{SP} là 770,000 so với \texttt{S} là 925,000), \texttt{Postcode} (cùng thông tin với suburb) và \texttt{Bedroom2} (trùng \texttt{Rooms} ở 95\% số dòng). Nếu mục tiêu là định giá \emph{trước khi bán}, \texttt{Method} nên bị loại và cần chạy lại để biết sai số thật (mục~\ref{sec:hanche}).
+  \item \textbf{Loại ngoại lai gần như không đổi độ chính xác.} Trên cùng một môi trường chạy, trước khi loại ngoại lai diện tích MAE test của Random Forest là 155,236 AUD ($R^2$ 0.8234), sau khi loại là 156,203 ($R^2$ 0.8225); Ridge trên validation có MAE giảm từ 234,939 xuống 231,137. Chênh lệch dưới 1\% ở Random Forest, nên báo cáo không khẳng định việc loại ngoại lai cải thiện dự đoán; lợi ích rõ rệt nằm ở thống kê mô tả và tương quan (Phép 6), vì Random Forest vốn ít nhạy với giá trị cực đoan.
+  \item \textbf{Số đo có thể lệch nhẹ giữa các máy.} Random Forest và các phiên bản scikit-learn khác nhau có thể cho MAE chênh vài trăm AUD (trước khi bổ sung quy tắc loại ngoại lai, chạy ở hai môi trường khác nhau đã cho MAE test 155,443 và 155,236); báo cáo dùng số trong \texttt{outputs/} của kho mã.
+  \item \textbf{Tệp mô hình.} \texttt{models/best\_pipeline.joblib} phụ thuộc phiên bản thư viện; cần chạy lại \texttt{train\_model.py} trên máy sử dụng.
+\end{itemize}

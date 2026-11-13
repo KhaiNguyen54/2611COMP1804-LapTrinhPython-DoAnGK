@@ -221,6 +221,7 @@ __marimo__/
 
 # Mô hình đã huấn luyện (phụ thuộc phiên bản scikit-learn, app tự huấn luyện lại)
 ml_pipeline/models/*.joblib
+models/
 
 # Cấu hình kết nối MySQL và cache kiểm thử
 ml_pipeline/.env

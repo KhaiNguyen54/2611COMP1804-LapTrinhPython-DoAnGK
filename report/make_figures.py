@@ -1,21 +1,27 @@
-"""Sinh các hình dùng trong báo cáo từ dữ liệu thật (data/melb_data.csv), đưa vào report/figures/.
+"""Sinh các hình dùng trong báo cáo từ dữ liệu thật, đưa vào report/figures/.
+
 Chạy từ thư mục report/:  python make_figures.py
-Các biểu đồ phân tích dùng lại đúng hàm trong ml_pipeline/analysis.py, nên giống hệt biểu đồ trong ứng dụng Streamlit."""
+
+- Năm biểu đồ phân tích (01-05) được vẽ bằng đúng hàm create_charts() của pipeline.py.
+- Hai biểu đồ chẩn đoán mô hình (06-07) được vẽ từ outputs/test_predictions.csv
+  (kết quả của train_model.py), cùng kiểu với biểu đồ train_model.py tạo ra.
+- Hai biểu đồ chất lượng dữ liệu (f_missing, f_cleaning) được vẽ từ tệp gốc data/melb_data.csv.
+"""
 import pathlib
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "ml_pipeline"))
+sys.path.insert(0, str(ROOT))
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-import analysis as A
-import features as F
+import pipeline as P
 
 OUT = pathlib.Path(__file__).resolve().parent / "figures"
 OUT.mkdir(exist_ok=True)
@@ -31,94 +37,83 @@ def save(fig, name):
 
 def f_missing(raw):
     sns.set_theme(style="whitegrid")
-    m = (raw.isna().mean() * 100)
+    m = raw.isna().mean() * 100
     m = m[m > 0].sort_values()
     fig, ax = plt.subplots(figsize=SIZE)
     bars = ax.barh(m.index, m.values, color="#4f81bd")
     ax.bar_label(bars, fmt="%.1f%%", padding=3)
     ax.set_xlim(0, 58)
-    ax.set_xlabel("Tỷ lệ dữ liệu thiếu (% trên 13,580 bản ghi)")
+    ax.set_xlabel(f"Tỷ lệ dữ liệu thiếu (% trên {len(raw):,} bản ghi)")
     ax.set_ylabel("Cột")
     ax.set_title("Dữ liệu thiếu trong tệp gốc")
     save(fig, "f_missing.png")
 
 
 def f_cleaning(raw):
+    """Số dòng bị ảnh hưởng bởi từng quy tắc làm sạch của pipeline.clean_data()."""
     sns.set_theme(style="whitegrid")
     rules = {
-        "Landsize = 0": int((raw.Landsize == 0).sum()),
-        "CouncilArea thiếu": int(raw.CouncilArea.isna().sum()),
-        "Bathroom = 0": int((raw.Bathroom == 0).sum()),
-        "BuildingArea = 0": int((raw.BuildingArea == 0).sum()),
-        "YearBuilt < 1800": int((raw.YearBuilt < 1800).sum()),
-        "Landsize > 100,000": int((raw.Landsize > 100000).sum()),
-        "BuildingArea > 10,000": int((raw.BuildingArea > 10000).sum()),
+        "CouncilArea thiếu → Unknown": int(raw["CouncilArea"].isna().sum()),
+        "BuildingArea ≤ 0 → thiếu": int((raw["BuildingArea"] <= 0).sum()),
+        "YearBuilt < 1700 → thiếu": int((raw["YearBuilt"] < 1700).sum()),
+        "Bathroom = 0 → thiếu": int((raw["Bathroom"] == 0).sum()),
+        "Landsize > 10,000 → thiếu": int((raw["Landsize"] > P.MAX_LANDSIZE).sum()),
+        "BuildingArea > 1,000 → thiếu": int((raw["BuildingArea"] > P.MAX_BUILDING_AREA).sum()),
+        "Price ≤ 0 (bỏ dòng)": int((raw["Price"] <= 0).sum()),
+        "Rooms ≤ 0 → thiếu": int((raw["Rooms"] <= 0).sum()),
+        "Distance < 0 → thiếu": int((raw["Distance"] < 0).sum()),
+        "Landsize < 0 → thiếu": int((raw["Landsize"] < 0).sum()),
+        "Tọa độ ngoài vùng → thiếu": int(
+            (~raw["Lattitude"].between(-39.5, -36.0)).sum() + (~raw["Longtitude"].between(142.0, 147.0)).sum()
+        ),
+        "Dòng trùng hoàn toàn (bỏ dòng)": int(raw.duplicated().sum()),
     }
     s = pd.Series(rules).sort_values()
     fig, ax = plt.subplots(figsize=SIZE)
     bars = ax.barh(s.index, s.values, color="#c0504d")
     ax.bar_label(bars, fmt="%d", padding=3)
-    ax.set_xlim(0, 2300)
+    ax.set_xlim(0, 1600)
     ax.set_xlabel("Số dòng bị ảnh hưởng")
     ax.set_ylabel("Quy tắc làm sạch")
     ax.set_title("Số dòng bị ảnh hưởng theo từng quy tắc")
     save(fig, "f_cleaning.png")
 
 
-def f_split(d):
-    sns.set_theme(style="whitegrid")
-    d = d.sort_values("Date")
-    d_tr, d_va = d["Date"].quantile(0.70), d["Date"].quantile(0.85)
-    parts = [("Train", d[d.Date <= d_tr], "#4f81bd"), ("Validation", d[(d.Date > d_tr) & (d.Date <= d_va)], "#f79646"),
-             ("Test", d[d.Date > d_va], "#c0504d")]
-    fig, ax = plt.subplots(figsize=(6.4, 3.6))
-    for name, p, c in parts:
-        m = p.groupby(p.Date.dt.to_period("M")).size()
-        ax.bar(m.index.to_timestamp(), m.values, width=20, color=c, label=f"{name} ({len(p):,} dòng)")
-    ax.set_xlabel("Tháng bán")
-    ax.set_ylabel("Số giao dịch")
-    ax.set_title("Chia dữ liệu theo thời gian: train < validation < test")
-    ax.legend()
-    save(fig, "f_split.png")
+def model_charts():
+    """Vẽ lại hai biểu đồ chẩn đoán của train_model.py từ outputs/test_predictions.csv."""
+    path = ROOT / "outputs" / "test_predictions.csv"
+    if not path.exists():
+        print("bỏ qua biểu đồ mô hình: chưa có", path, "(chạy train_model.py trước)")
+        return
+    t = pd.read_csv(path)
+    y, pred = t["ActualPrice"].to_numpy(), t["PredictedPrice"].to_numpy()
 
+    fig, ax = plt.subplots(figsize=(7, 6))
+    ax.scatter(y, pred, alpha=0.35, s=18)
+    lo, hi = min(y.min(), pred.min()), max(y.max(), pred.max())
+    ax.plot([lo, hi], [lo, hi], linestyle="--", color="red")
+    ax.set_title("Giá thực tế và giá dự đoán trên tập test")
+    ax.set_xlabel("Giá thực tế (AUD)")
+    ax.set_ylabel("Giá dự đoán (AUD)")
+    save(fig, "06_actual_vs_predicted.png")
 
-def f_price_hist(d):
-    sns.set_theme(style="whitegrid")
-    fig, axs = plt.subplots(1, 2, figsize=(6.8, 3.6))
-    sns.histplot(d["Price"] / 1e6, bins=60, ax=axs[0], color="teal")
-    axs[0].set_xlabel("Giá (triệu AUD)"); axs[0].set_ylabel("Số giao dịch")
-    axs[0].set_title(f"Giá gốc (độ lệch {d.Price.skew():.2f})", fontsize=10)
-    sns.histplot(np.log(d["Price"]), bins=60, ax=axs[1], color="#7f6084")
-    axs[1].set_xlabel("log(Giá), Giá tính bằng AUD"); axs[1].set_ylabel("Số giao dịch")
-    axs[1].set_title(f"Sau khi lấy log (độ lệch {np.log(d.Price).skew():.2f})", fontsize=10)
-    save(fig, "f_price_hist.png")
-
-
-def f_rooms(d):
-    sns.set_theme(style="whitegrid")
-    t = A.stats_by_rooms(d)
-    fig, ax = plt.subplots(figsize=SIZE)
-    bars = ax.bar(t.index.astype(str), t["gia_trung_vi"] / 1e6, color="#4f81bd")
-    ax.bar_label(bars, labels=[f"n={n:,}" for n in t["so_giao_dich"]], fontsize=8, padding=2)
-    ax.set_xlabel("Số phòng"); ax.set_ylabel("Giá trung vị (triệu AUD)")
-    ax.set_title("Giá trung vị theo số phòng (n = số giao dịch)")
-    ax.set_ylim(0, 2.1)
-    save(fig, "f_rooms.png")
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.hist(y - pred, bins=40, edgecolor="white")
+    ax.axvline(0, linestyle="--", color="red")
+    ax.set_title("Phân phối sai số (thực tế − dự đoán) trên tập test")
+    ax.set_xlabel("Sai số (AUD)")
+    ax.set_ylabel("Số bản ghi")
+    save(fig, "07_residual_distribution.png")
 
 
 def main():
-    raw = pd.read_csv(A.DATA)
-    d = A.load_clean()
+    raw = P.load_data()
+    clean = P.clean_data(raw)
+    for p in P.create_charts(clean, OUT):
+        print("đã tạo", p.name)
     f_missing(raw)
     f_cleaning(raw)
-    f_split(d)
-    f_price_hist(d)
-    f_rooms(d)
-    save(A.fig_type_box(d), "f_type_box.png")
-    save(A.fig_trend(d), "f_trend.png")
-    save(A.fig_corr(d), "f_corr.png")
-    save(A.fig_distance_scatter(d), "f_distance.png")
-    save(A.fig_region_bar(d), "f_region.png")
+    model_charts()
 
 
 if __name__ == "__main__":
