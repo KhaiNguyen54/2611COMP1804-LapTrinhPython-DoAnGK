@@ -36,11 +36,12 @@ Giá trị lỗi hoặc bất thường & Xem Bảng~\ref{tab:loi}. \\
 \texttt{Bathroom} $=$ 0 & 34 & Chuyển thành thiếu; nhà ở không thể không có phòng tắm \\
 \texttt{YearBuilt} $\geq$ 2017 & 19 & Giữ nguyên; 6 dòng có năm xây sau năm bán \\
 \texttt{Distance} $=$ 0, \texttt{Rooms} $\geq$ 7 & 6; 19 & Hợp lý (nhà ngay trung tâm, nhà lớn), giữ nguyên \\
-\texttt{Longitude}, \texttt{Latitude} $\notin$ Melbourne & 0 & Không có dòng nào vi phạm \\
-
+Tọa độ (\texttt{Lattitude}, \texttt{Longtitude}) ngoài khung Melbourne & 0 & Có kiểm tra, không có dòng nào vi phạm \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Khung tọa độ kiểm tra là \texttt{Lattitude} trong $[-39.5;\,-36.0]$ và \texttt{Longtitude} trong $[142.0;\,147.0]$; trên tệp gốc, \texttt{Lattitude} nằm trong khoảng $-38.18$ đến $-37.41$ và \texttt{Longtitude} từ 144.43 đến 145.53.
 
 \begin{figure}[H]
 \centering

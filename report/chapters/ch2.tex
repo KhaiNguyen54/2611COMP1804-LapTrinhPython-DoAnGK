@@ -44,18 +44,18 @@ Số đại lý bán (\texttt{SellerG}) & 268 \\
 Giá thấp nhất / cao nhất & 85,000 / 9,000,000 AUD \\
 Giá trung vị / trung bình & 903,000 / 1,075,684 AUD \\
 Số dòng trùng lặp hoàn toàn & 0 \\
-Số dòng có giá trị null & 7384 \\
-Số dòng có giá Price không hợp lệ & 0 \\
+Số dòng có ít nhất một ô null & 7,384 \\
+Số dòng có \texttt{Price} $\leq$ 0 hoặc null & 0 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Bộ dữ liệu đáp ứng mức tối thiểu (khoảng 500 bản ghi và 5 thuộc tính). Về cơ cấu, nhà riêng (\texttt{h}) chiếm 69.6\% số dòng (9,449 dòng), căn hộ (\texttt{u}) 22.2\% (3,017 dòng) và nhà liền kề (\texttt{t}) 8.2\% (1,114 dòng). Theo vùng, Southern Metropolitan chiếm 34.6\%, Northern Metropolitan 28.6\%, Western Metropolitan 21.7\% và Eastern Metropolitan 10.8\%; ba vùng Victoria (Eastern, Northern, Western) cộng lại chỉ có 126 dòng (0.9\%).
+Có 7,384 dòng chứa ít nhất một ô null; tổng cộng 13,256 ô null, nằm ở bốn cột \texttt{Car} (62), \texttt{BuildingArea} (6,450), \texttt{YearBuilt} (5,375) và \texttt{CouncilArea} (1,369), đếm bằng \texttt{isna()} trên tệp gốc. Bộ dữ liệu đáp ứng mức tối thiểu (khoảng 500 bản ghi và 5 thuộc tính). Về cơ cấu, nhà riêng (\texttt{h}) chiếm 69.6\% số dòng (9,449 dòng), căn hộ (\texttt{u}) 22.2\% (3,017 dòng) và nhà liền kề (\texttt{t}) 8.2\% (1,114 dòng). Theo vùng, Southern Metropolitan chiếm 34.6\%, Northern Metropolitan 28.6\%, Western Metropolitan 21.7\% và Eastern Metropolitan 10.8\%; ba vùng Victoria (Eastern, Northern, Western) cộng lại chỉ có 126 dòng (0.9\%).
 
 Về thời gian, dữ liệu trải trên 19 tháng có giao dịch nhưng không liên tục. Không có giao dịch nào trong tháng 3/2016 và tháng 1/2017; tháng 1/2016 chỉ có 2 giao dịch và tháng 2/2016 có 26 giao dịch, trong khi các tháng còn lại có từ 318 đến 1,536 giao dịch. Do đó quý 1/2016 gần như trống (28 giao dịch) và mọi so sánh theo thời gian cần đọc thận trọng (Phép 7, mục~\ref{sec:p7}).
 
 \section{Từ điển dữ liệu: ý nghĩa và kiểu từng cột}\label{sec:tudien}
-Bảng~\ref{tab:tudien} mô tả 21 cột của tệp gốc và vai trò của từng cột trong \texttt{train\_model.py}. Ý nghĩa các cột theo cách hiểu thông dụng của bộ dữ liệu Melbourne Housing; đơn vị mét vuông của \texttt{Landsize} và \texttt{BuildingArea} được suy ra từ phân phối giá trị ở bảng \ref{tab:loainha}, vì tệp không kèm mô tả đơn vị. Tên hai cột \texttt{Lattitude} và \texttt{Longtitude} bị viết sai chính tả ngay từ tệp gốc và được giữ nguyên để không sửa dữ liệu thô.
+Bảng~\ref{tab:tudien} mô tả 21 cột của tệp gốc và vai trò của từng cột trong \texttt{train\_model.py}. Ý nghĩa các cột theo cách hiểu thông dụng của bộ dữ liệu Melbourne Housing; đơn vị mét vuông của \texttt{Landsize} và \texttt{BuildingArea} được suy ra từ phân phối giá trị ở Bảng~\ref{tab:mota-so} (trung vị sau làm sạch lần lượt là 439 và 126), vì tệp không kèm mô tả đơn vị. Tên hai cột \texttt{Lattitude} và \texttt{Longtitude} bị viết sai chính tả ngay từ tệp gốc và được giữ nguyên để không sửa dữ liệu thô.
 
 {\small
 \begin{longtable}{@{}l l L{6.6cm} L{3.1cm}@{}}
