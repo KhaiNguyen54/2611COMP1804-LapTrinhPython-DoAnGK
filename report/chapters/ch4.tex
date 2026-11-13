@@ -110,7 +110,7 @@ Western Victoria & 32 & 400,000 & 397,523 \\
 \end{tabular}
 \end{table}
 
-\paragraph{Diễn giải.} Southern Metropolitan đắt nhất (trung vị 1,250,000), cao hơn Western Metropolitan, vùng nội đô rẻ nhất, khoảng 1.6 lần (793,000). Ba vùng thuộc bang Victoria ngoài đô thị chỉ có 32 đến 53 giao dịch mỗi vùng (tổng 126 dòng, chưa đến 1\% dữ liệu), nên các con số của chúng kém tin cậy, dù Western Victoria (400,000) rõ ràng là thấp nhất. Phân bố theo vùng rất lệch: bốn vùng đô thị lớn chiếm 95.8\% số giao dịch, riêng Southern Metropolitan chiếm 34.6\%. Kết quả theo vùng cũng lẫn với cơ cấu loại nhà trong vùng (ví dụ căn hộ chiếm tỷ lệ cao ở một số vùng), nên chênh lệch giữa vùng không thuần túy là chênh lệch về vị trí.
+\paragraph{Diễn giải.} Southern Metropolitan đắt nhất (trung vị 1,250,000), cao hơn Western Metropolitan, vùng đô thị rẻ nhất, khoảng 1.6 lần (793,000). Ba vùng thuộc bang Victoria ngoài đô thị chỉ có 32 đến 53 giao dịch mỗi vùng (tổng 126 dòng, chưa đến 1\% dữ liệu), nên các con số của chúng kém tin cậy, dù Western Victoria (400,000) rõ ràng là thấp nhất. Phân bố theo vùng rất lệch: bốn vùng đô thị lớn chiếm 95.8\% số giao dịch, riêng Southern Metropolitan chiếm 34.6\%. Kết quả theo vùng cũng lẫn với cơ cấu loại nhà trong vùng (ví dụ căn hộ chiếm tỷ lệ cao ở một số vùng), nên chênh lệch giữa vùng không thuần túy là chênh lệch về vị trí.
 
 \subsection{Phép 4. Giá theo số phòng}\label{sec:p4}
 \paragraph{Mục đích.} Đo mức tăng của giá khi số phòng tăng.
@@ -204,7 +204,7 @@ Thuộc tính & Pearson với \texttt{Price} \\
 \centering
 \caption{Độ nhạy của tương quan với ngoại lai về diện tích và với loại nhà}\label{tab:nhay}
 \small
-\begin{tabular}{@{}L{7.6cm} r r@{}}
+\begin{tabular}{@{}L{6.4cm} r L{4.6cm}@{}}
 \toprule
 Phép tính & Giá trị & Ghi chú \\
 \midrule
@@ -213,7 +213,8 @@ Phép tính & Giá trị & Ghi chú \\
 \texttt{BuildingArea}, Spearman & 0.637 & Dựa trên thứ hạng \\
 \texttt{Landsize}, Pearson trước khi loại ngoại lai & 0.038 & Có dòng 433,014 m\textsuperscript{2} \\
 \texttt{Landsize}, Pearson sau khi loại (tệp sạch) & 0.132 & Loại 26 dòng $>$ 10,000 \\
-\texttt{Landsize}, Spearman & 0.329 & Nhiều căn hộ có \texttt{Landsize} $=$ 0 \\
+\texttt{Landsize}, Spearman & 0.329 & Có 1,939 dòng bằng 0 (đồng hạng thấp nhất) \\
+\texttt{Landsize} $>$ 0, Pearson / Spearman & 0.041 / 0.151 & Chỉ 11,615 dòng có đất \\
 \texttt{Rooms}, Spearman & 0.540 & Pearson là 0.497 \\
 \texttt{Distance}, Pearson chung & $-$0.163 & Spearman $-$0.130 \\
 \texttt{Distance}, Pearson riêng nhà riêng (\texttt{h}) & $-$0.329 & Liền kề $-$0.139; căn hộ $-$0.051 \\
@@ -221,7 +222,7 @@ Phép tính & Giá trị & Ghi chú \\
 \end{tabular}
 \end{table}
 
-\paragraph{Diễn giải.} Sau khi loại ngoại lai, bốn thuộc tính liên hệ mạnh nhất với giá là diện tích xây \texttt{BuildingArea} (0.556), số phòng (0.497), số phòng ngủ \texttt{Bedroom2} (0.476) và số phòng tắm (0.469); \texttt{Bedroom2} và \texttt{Rooms} gần như là cùng một thông tin (tương quan 0.944; hai cột trùng nhau ở 95\% số dòng). Ngoại lai từng làm hệ số của \texttt{BuildingArea} \emph{thấp một cách đánh lừa}: Bảng~\ref{tab:nhay} cho thấy tám dòng trên 1,000 m\textsuperscript{2} (trong đó có dòng 44,515 m\textsuperscript{2}) kéo Pearson của \texttt{BuildingArea} xuống 0.092; loại chúng thì hệ số lên 0.556, gần với Spearman (0.637, không đổi vì dựa trên thứ hạng). Tương tự, \texttt{Landsize} tăng từ 0.038 lên 0.132 sau khi loại 26 dòng trên 10,000 m\textsuperscript{2}; hệ số này vẫn thấp vì căn hộ có đất bằng 0 mà giá không thấp hơn nhà riêng ở nhiều suburb. Bài học là hệ số Pearson rất nhạy với vài giá trị cực đoan, nên cần kiểm tra ngoại lai trước khi kết luận ``diện tích không ảnh hưởng đến giá''. \texttt{YearBuilt} có tương quan âm ($-$0.332) nghĩa là nhà xây càng muộn càng rẻ, tức nhà cũ đắt hơn: đây là hệ quả của việc nhà cũ tập trung ở các suburb nội đô danh tiếng và nhà mới chủ yếu là căn hộ rẻ hơn (tương quan giữa \texttt{YearBuilt} và \texttt{Distance} là 0.25), không phải do tuổi tự nó làm tăng giá. \texttt{Distance} chỉ có tương quan $-$0.163, yếu hơn nhiều so với kỳ vọng. Khi tách theo loại nhà, quy luật hiện ra ở nhà riêng ($-$0.329, gấp đôi mức chung), còn căn hộ gần như không phụ thuộc khoảng cách ($-$0.051). Lý do là căn hộ rẻ nhưng tập trung ở gần trung tâm, nên kéo thấp giá ở gần trung tâm: đây là hiệu ứng gộp mà việc nhóm chung che mất (Phép 2). Các thuộc tính đầu vào cũng tương quan với nhau (số phòng và số phòng tắm 0.59; \texttt{Landsize} và \texttt{BuildingArea} 0.17). Tương quan không chứng minh quan hệ nhân quả.
+\paragraph{Diễn giải.} Sau khi loại ngoại lai, bốn thuộc tính liên hệ mạnh nhất với giá là diện tích xây \texttt{BuildingArea} (0.556), số phòng (0.497), số phòng ngủ \texttt{Bedroom2} (0.476) và số phòng tắm (0.469); \texttt{Bedroom2} và \texttt{Rooms} gần như là cùng một thông tin (tương quan 0.944; hai cột trùng nhau ở 95\% số dòng). Ngoại lai từng làm hệ số của \texttt{BuildingArea} \emph{thấp một cách đánh lừa}: Bảng~\ref{tab:nhay} cho thấy tám dòng trên 1,000 m\textsuperscript{2} (trong đó có dòng 44,515 m\textsuperscript{2}) kéo Pearson của \texttt{BuildingArea} xuống 0.092; loại chúng thì hệ số lên 0.556, gần với Spearman (0.637, không đổi vì dựa trên thứ hạng). Tương tự, \texttt{Landsize} tăng từ 0.038 lên 0.132 sau khi loại 26 dòng trên 10,000 m\textsuperscript{2}; hệ số này vẫn thấp. Nguyên nhân không phải do các dòng \texttt{Landsize} bằng 0: chỉ xét 11,615 dòng có đất thì Pearson là 0.041 và Spearman 0.151 (thấp hơn mức 0.329 tính cả các dòng bằng 0). Theo từng loại nhà, Pearson giữa \texttt{Landsize} và giá là 0.147 ở nhà riêng, 0.116 ở liền kề và $-$0.008 ở căn hộ, tức quan hệ tuyến tính giữa diện tích đất và giá yếu ngay trong từng loại. Bài học là hệ số Pearson rất nhạy với vài giá trị cực đoan, nên cần kiểm tra ngoại lai trước khi kết luận ``diện tích không ảnh hưởng đến giá''. \texttt{YearBuilt} có tương quan âm ($-$0.332) nghĩa là nhà xây càng muộn càng rẻ. Một phần đến từ cơ cấu loại nhà: nhà liền kề xây muộn nhất (năm xây trung vị 2005, so với 1960 ở nhà riêng và 1975 ở căn hộ) nhưng rẻ hơn nhà riêng. Phần còn lại nằm ngay trong nhà riêng, nơi Pearson giữa \texttt{YearBuilt} và giá vẫn là $-$0.251 (liền kề $-$0.052, căn hộ $-$0.009). Hệ số này chỉ tính trên 8,204 dòng có năm xây, và dữ liệu không đủ để tách tuổi nhà khỏi vị trí (tương quan giữa \texttt{YearBuilt} và \texttt{Distance} là 0.25). \texttt{Distance} chỉ có tương quan $-$0.163, yếu hơn nhiều so với kỳ vọng. Khi tách theo loại nhà, quy luật hiện ra ở nhà riêng ($-$0.329, gấp đôi mức chung), còn căn hộ gần như không phụ thuộc khoảng cách ($-$0.051). Một cách giải thích phù hợp với dữ liệu là căn hộ rẻ hơn (trung vị 560,000) và nằm gần trung tâm hơn (trung vị 6.9 km so với 10.4 km ở nhà riêng), nên kéo thấp giá ở gần trung tâm: đây là hiệu ứng gộp mà việc nhóm chung che mất (Phép 2). Các thuộc tính đầu vào cũng tương quan với nhau (số phòng và số phòng tắm 0.59; \texttt{Landsize} và \texttt{BuildingArea} 0.17). Tương quan không chứng minh quan hệ nhân quả.
 
 \section{Theo thời gian}\label{sec:xuhuong}
 
