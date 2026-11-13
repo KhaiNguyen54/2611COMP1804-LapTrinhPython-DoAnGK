@@ -28,7 +28,6 @@ Giá trị lỗi hoặc bất thường & Xem Bảng~\ref{tab:loi}. \\
 Điều kiện & Số dòng & Xử lý \\
 \midrule
 \texttt{Price} $\leq$ 0, \texttt{Rooms} $\leq$ 0, \texttt{Distance} $<$ 0, \texttt{Landsize} $<$ 0 & 0 & Có kiểm tra, không có dòng nào vi phạm \\
-Tọa độ ngoài khung Melbourne & 0 & Có kiểm tra, không có dòng nào vi phạm \\
 \texttt{BuildingArea} $\leq$ 0 & 17 & Chuyển thành thiếu \\
 \texttt{YearBuilt} $<$ 1700 & 1 & Chuyển thành thiếu; giá trị nhỏ nhất là năm 1196, không thể có \\
 \texttt{Landsize} $=$ 0 & 1,939 & Giữ nguyên; 1,629 dòng là căn hộ (54\% số căn hộ) \\
@@ -37,6 +36,8 @@ Tọa độ ngoài khung Melbourne & 0 & Có kiểm tra, không có dòng nào v
 \texttt{Bathroom} $=$ 0 & 34 & Chuyển thành thiếu; nhà ở không thể không có phòng tắm \\
 \texttt{YearBuilt} $\geq$ 2017 & 19 & Giữ nguyên; 6 dòng có năm xây sau năm bán \\
 \texttt{Distance} $=$ 0, \texttt{Rooms} $\geq$ 7 & 6; 19 & Hợp lý (nhà ngay trung tâm, nhà lớn), giữ nguyên \\
+\texttt{Longitude}, \texttt{Latitude} $\notin$ Melbourne & 0 & Không có dòng nào vi phạm \\
+
 \bottomrule
 \end{tabular}
 \end{table}

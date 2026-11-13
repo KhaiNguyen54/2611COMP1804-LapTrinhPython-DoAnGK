@@ -44,6 +44,8 @@ Số đại lý bán (\texttt{SellerG}) & 268 \\
 Giá thấp nhất / cao nhất & 85,000 / 9,000,000 AUD \\
 Giá trung vị / trung bình & 903,000 / 1,075,684 AUD \\
 Số dòng trùng lặp hoàn toàn & 0 \\
+Số dòng có giá trị null & 7384 \\
+Số dòng có giá Price không hợp lệ & 0 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -53,7 +55,7 @@ Bộ dữ liệu đáp ứng mức tối thiểu (khoảng 500 bản ghi và 5 t
 Về thời gian, dữ liệu trải trên 19 tháng có giao dịch nhưng không liên tục. Không có giao dịch nào trong tháng 3/2016 và tháng 1/2017; tháng 1/2016 chỉ có 2 giao dịch và tháng 2/2016 có 26 giao dịch, trong khi các tháng còn lại có từ 318 đến 1,536 giao dịch. Do đó quý 1/2016 gần như trống (28 giao dịch) và mọi so sánh theo thời gian cần đọc thận trọng (Phép 7, mục~\ref{sec:p7}).
 
 \section{Từ điển dữ liệu: ý nghĩa và kiểu từng cột}\label{sec:tudien}
-Bảng~\ref{tab:tudien} mô tả 21 cột của tệp gốc và vai trò của từng cột trong \texttt{train\_model.py}. Ý nghĩa các cột theo cách hiểu thông dụng của bộ dữ liệu Melbourne Housing; đơn vị mét vuông của \texttt{Landsize} và \texttt{BuildingArea} được suy ra từ phân phối giá trị (trung vị lần lượt là 440 và 126), vì tệp không kèm mô tả đơn vị. Tên hai cột \texttt{Lattitude} và \texttt{Longtitude} bị viết sai chính tả ngay từ tệp gốc và được giữ nguyên để không sửa dữ liệu thô.
+Bảng~\ref{tab:tudien} mô tả 21 cột của tệp gốc và vai trò của từng cột trong \texttt{train\_model.py}. Ý nghĩa các cột theo cách hiểu thông dụng của bộ dữ liệu Melbourne Housing; đơn vị mét vuông của \texttt{Landsize} và \texttt{BuildingArea} được suy ra từ phân phối giá trị ở bảng \ref{tab:loainha}, vì tệp không kèm mô tả đơn vị. Tên hai cột \texttt{Lattitude} và \texttt{Longtitude} bị viết sai chính tả ngay từ tệp gốc và được giữ nguyên để không sửa dữ liệu thô.
 
 {\small
 \begin{longtable}{@{}l l L{6.6cm} L{3.1cm}@{}}
@@ -79,7 +81,7 @@ Cột & Kiểu & Ý nghĩa & Vai trò \\
 \texttt{Method} & chuỗi & Phương thức bán: \texttt{S}, \texttt{SP}, \texttt{PI}, \texttt{VB}, \texttt{SA} & Dùng (chỉ biết sau khi bán, xem mục~\ref{sec:hanche}) \\
 \texttt{SellerG} & chuỗi & Đại lý bán (268 giá trị) & Không dùng \\
 \texttt{Date} & chuỗi & Ngày bán, định dạng \texttt{dd/mm/yyyy}, đọc thành kiểu ngày & Tạo \texttt{SaleYear}, \texttt{SaleMonth} \\
-\texttt{Distance} & số thực & Khoảng cách đến trung tâm thành phố, đơn vị km (0 đến 48.1) & Dùng \\
+\texttt{Distance} & số thực & Khoảng cách đến trung tâm thành phố, đơn vị km & Dùng \\
 \texttt{Postcode} & số thực & Mã bưu chính (198 giá trị), thực chất là mã nhóm & Dùng (one-hot) \\
 \texttt{Bedroom2} & số thực & Số phòng ngủ từ một nguồn khác; trùng \texttt{Rooms} ở 95\% số dòng & Dùng \\
 \texttt{Bathroom} & số thực & Số phòng tắm & Dùng \\
