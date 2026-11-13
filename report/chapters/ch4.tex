@@ -42,17 +42,17 @@ Lớn nhất & 9,000,000 & Trung vị & 903,000 \\
 Thuộc tính & Số dòng có giá trị & Trung bình & Trung vị & Lớn nhất \\
 \midrule
 \texttt{Rooms} & 13,580 & 2.9 & 3 & 10 \\
-\texttt{Bathroom} & 13,580 & 1.5 & 1 & 8 \\
+\texttt{Bathroom} & 13,546 & 1.5 & 1 & 8 \\
 \texttt{Car} & 13,518 & 1.6 & 2 & 10 \\
 \texttt{Distance} (km) & 13,580 & 10.1 & 9.2 & 48.1 \\
-\texttt{Landsize} (m\textsuperscript{2}) & 13,580 & 558.4 & 440 & 433,014 \\
-\texttt{BuildingArea} (m\textsuperscript{2}) & 7,113 & 152.3 & 126 & 44,515 \\
+\texttt{Landsize} (m\textsuperscript{2}) & 13,554 & 478.3 & 439 & 9,838 \\
+\texttt{BuildingArea} (m\textsuperscript{2}) & 7,105 & 143.7 & 126 & 934 \\
 \texttt{YearBuilt} (năm) & 8,204 & 1964.8 & 1970 & 2018 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Diễn giải.} Giá trung bình (1,075,684) cao hơn trung vị (903,000) khoảng 19\%, và độ lệch 2.24 cho thấy phân phối lệch phải rõ rệt (Hình~\ref{fig:hist}): một số ít giao dịch rất đắt kéo trung bình lên. Hệ số biến thiên 0.59 nghĩa là độ lệch chuẩn bằng gần 60\% giá trung bình; 10\% giao dịch rẻ nhất dưới 480,000 còn 10\% đắt nhất trên 1,850,000, chênh nhau gần 3.9 lần. Vì vậy trung vị là thước đo tâm phù hợp hơn trung bình, và các so sánh trong chương này chủ yếu dùng trung vị. Lấy logarit làm độ lệch giảm từ 2.24 xuống 0.18, gần đối xứng; đây là lý do mô hình Random Forest được huấn luyện trên log của giá (Chương~\ref{ch:mohinh}). Các thuộc tính diện tích còn có giá trị cực đoan: \texttt{Landsize} lớn nhất 433,014 m\textsuperscript{2} gấp gần 1,000 lần trung vị 440, và \texttt{BuildingArea} lớn nhất 44,515 m\textsuperscript{2} gấp hơn 350 lần trung vị 126. Đây là các giá trị phi thực tế cho nhà ở và chúng làm sai lệch số trung bình cũng như hệ số tương quan (Phép 6).
+\paragraph{Diễn giải.} Giá trung bình (1,075,684) cao hơn trung vị (903,000) khoảng 19\%, và độ lệch 2.24 cho thấy phân phối lệch phải rõ rệt (Hình~\ref{fig:hist}): một số ít giao dịch rất đắt kéo trung bình lên. Hệ số biến thiên 0.59 nghĩa là độ lệch chuẩn bằng gần 60\% giá trung bình; 10\% giao dịch rẻ nhất dưới 480,000 còn 10\% đắt nhất trên 1,850,000, chênh nhau gần 3.9 lần. Vì vậy trung vị là thước đo tâm phù hợp hơn trung bình, và các so sánh trong chương này chủ yếu dùng trung vị. Lấy logarit làm độ lệch giảm từ 2.24 xuống 0.18, gần đối xứng; đây là lý do mô hình Random Forest được huấn luyện trên log của giá (Chương~\ref{ch:mohinh}). Các thuộc tính diện tích đã được loại giá trị phi thực tế ở bước làm sạch (mục~\ref{sec:thieu}): trước đó \texttt{Landsize} lớn nhất là 433,014 m\textsuperscript{2} và \texttt{BuildingArea} lớn nhất là 44,515 m\textsuperscript{2}; trung bình của \texttt{Landsize} giảm từ 558.4 xuống 478.3 m\textsuperscript{2} và của \texttt{BuildingArea} từ 152.3 xuống 143.7 m\textsuperscript{2}, trong khi trung vị gần như không đổi (439 và 126), cho thấy trung vị bền hơn trung bình trước ngoại lai.
 
 \section{Nhóm theo loại nhà, vùng, số phòng và suburb}\label{sec:groupby}
 Các phép trong mục này dùng \texttt{groupby} kết hợp lọc và sắp xếp, đúng như trong \texttt{pipeline.py}:
@@ -169,8 +169,8 @@ Ashburton & 60 & 1,658,500 & 1,728,725 \\
 \section{Tương quan giữa các thuộc tính số và giá}\label{sec:tuongquan}
 
 \subsection{Phép 6. Hệ số tương quan Pearson và độ nhạy với ngoại lai}\label{sec:p6}
-\paragraph{Mục đích.} Xác định thuộc tính số nào liên hệ mạnh nhất với giá, và kiểm tra xem dữ liệu thiếu hay ngoại lai có làm sai lệch kết quả không.
-\paragraph{Phương pháp.} Tính ma trận tương quan Pearson bằng \texttt{df[cols].corr()} trên các cột số (Pandas bỏ qua các cặp có ô thiếu). Để kiểm tra độ nhạy, tính thêm tương quan hạng Spearman (dựa trên thứ hạng, ít bị ngoại lai ảnh hưởng) và tính lại Pearson sau khi loại các giá trị phi thực tế của diện tích; các phép kiểm tra thêm này dùng đoạn mã ở Phụ lục~\ref{pl:taile}, không nằm trong \texttt{pipeline.py}.
+\paragraph{Mục đích.} Xác định thuộc tính số nào liên hệ mạnh nhất với giá, và kiểm tra xem ngoại lai về diện tích có làm sai lệch kết quả không bằng cách so sánh trước và sau khi loại chúng.
+\paragraph{Phương pháp.} Tính ma trận tương quan Pearson bằng \texttt{df[cols].corr()} trên các cột số (Pandas bỏ qua các cặp có ô thiếu). Để kiểm tra độ nhạy, tính thêm tương quan hạng Spearman (dựa trên thứ hạng, ít bị ngoại lai ảnh hưởng) và so sánh Pearson trên tệp \emph{trước} khi loại ngoại lai (đọc từ \texttt{data/melb\_data.csv}) với tệp đã làm sạch; các phép kiểm tra thêm này dùng đoạn mã ở Phụ lục~\ref{pl:taile}, không nằm trong \texttt{pipeline.py}.
 \begin{lstlisting}
 cols = ["Price", "Rooms", "Bedroom2", "Bathroom", "Car", "Distance",
         "Landsize", "BuildingArea", "YearBuilt", "Propertycount"]
@@ -187,15 +187,15 @@ df["Price"].corr(df["BuildingArea"], method="spearman")
 \toprule
 Thuộc tính & Pearson với \texttt{Price} \\
 \midrule
+\texttt{BuildingArea} & 0.556 \\
 \texttt{Rooms} & 0.497 \\
 \texttt{Bedroom2} & 0.476 \\
-\texttt{Bathroom} & 0.467 \\
+\texttt{Bathroom} & 0.469 \\
 \texttt{YearBuilt} & $-$0.332 \\
 \texttt{Car} & 0.239 \\
 \texttt{Distance} & $-$0.163 \\
-\texttt{BuildingArea} & 0.092 \\
+\texttt{Landsize} & 0.132 \\
 \texttt{Propertycount} & $-$0.042 \\
-\texttt{Landsize} & 0.038 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -208,11 +208,12 @@ Thuộc tính & Pearson với \texttt{Price} \\
 \toprule
 Phép tính & Giá trị & Ghi chú \\
 \midrule
-\texttt{BuildingArea}, Pearson trên toàn bộ & 0.092 & Có 1 dòng 44,515 m\textsuperscript{2} \\
-\texttt{BuildingArea}, Pearson sau khi loại giá trị $>$ 10,000 & 0.365 & Loại 1 dòng \\
-\texttt{BuildingArea}, Spearman & 0.636 & Dựa trên thứ hạng \\
-\texttt{Landsize}, Pearson trên toàn bộ & 0.038 & Có 1 dòng 433,014 m\textsuperscript{2} \\
-\texttt{Landsize}, Spearman & 0.327 & Nhiều căn hộ có \texttt{Landsize} $=$ 0 \\
+\texttt{BuildingArea}, Pearson trước khi loại ngoại lai & 0.092 & Có dòng 44,515 m\textsuperscript{2} \\
+\texttt{BuildingArea}, Pearson sau khi loại (tệp sạch) & 0.556 & Loại 8 dòng $>$ 1,000 \\
+\texttt{BuildingArea}, Spearman & 0.637 & Dựa trên thứ hạng \\
+\texttt{Landsize}, Pearson trước khi loại ngoại lai & 0.038 & Có dòng 433,014 m\textsuperscript{2} \\
+\texttt{Landsize}, Pearson sau khi loại (tệp sạch) & 0.132 & Loại 26 dòng $>$ 10,000 \\
+\texttt{Landsize}, Spearman & 0.329 & Nhiều căn hộ có \texttt{Landsize} $=$ 0 \\
 \texttt{Rooms}, Spearman & 0.540 & Pearson là 0.497 \\
 \texttt{Distance}, Pearson chung & $-$0.163 & Spearman $-$0.130 \\
 \texttt{Distance}, Pearson riêng nhà riêng (\texttt{h}) & $-$0.329 & Liền kề $-$0.139; căn hộ $-$0.051 \\
@@ -220,7 +221,7 @@ Phép tính & Giá trị & Ghi chú \\
 \end{tabular}
 \end{table}
 
-\paragraph{Diễn giải.} Ba thuộc tính liên hệ mạnh nhất với giá là số phòng (0.497), số phòng ngủ \texttt{Bedroom2} (0.476) và số phòng tắm (0.467); \texttt{Bedroom2} và \texttt{Rooms} gần như là cùng một thông tin (tương quan 0.944; hai cột trùng nhau ở 95\% số dòng). \emph{Hệ số của \texttt{BuildingArea} (0.092) và \texttt{Landsize} (0.038) thấp một cách đánh lừa}: Bảng~\ref{tab:nhay} cho thấy chỉ một dòng 44,515 m\textsuperscript{2} đã kéo Pearson của \texttt{BuildingArea} từ 0.365 xuống 0.092, còn Spearman là 0.636, tức diện tích xây thật ra là một trong những thuộc tính liên hệ mạnh nhất với giá. Vì pipeline giữ nguyên ngoại lai (mục~\ref{sec:thieu}), ma trận Hình~\ref{fig:corr} nên được đọc kèm bảng này và không nên kết luận ``diện tích không ảnh hưởng đến giá''. \texttt{YearBuilt} có tương quan âm ($-$0.332) nghĩa là nhà xây càng muộn càng rẻ, tức nhà cũ đắt hơn: đây là hệ quả của việc nhà cũ tập trung ở các suburb nội đô danh tiếng và nhà mới chủ yếu là căn hộ rẻ hơn (tương quan giữa \texttt{YearBuilt} và \texttt{Distance} là 0.25), không phải do tuổi tự nó làm tăng giá. \texttt{Distance} chỉ có tương quan $-$0.163, yếu hơn nhiều so với kỳ vọng. Khi tách theo loại nhà, quy luật hiện ra ở nhà riêng ($-$0.329, gấp đôi mức chung), còn căn hộ gần như không phụ thuộc khoảng cách ($-$0.051). Lý do là căn hộ rẻ nhưng tập trung ở gần trung tâm, nên kéo thấp giá ở gần trung tâm: đây là hiệu ứng gộp mà việc nhóm chung che mất (Phép 2). Các thuộc tính đầu vào cũng tương quan với nhau (số phòng và số phòng tắm 0.59; \texttt{Landsize} và \texttt{BuildingArea} 0.50). Tương quan không chứng minh quan hệ nhân quả.
+\paragraph{Diễn giải.} Sau khi loại ngoại lai, bốn thuộc tính liên hệ mạnh nhất với giá là diện tích xây \texttt{BuildingArea} (0.556), số phòng (0.497), số phòng ngủ \texttt{Bedroom2} (0.476) và số phòng tắm (0.469); \texttt{Bedroom2} và \texttt{Rooms} gần như là cùng một thông tin (tương quan 0.944; hai cột trùng nhau ở 95\% số dòng). Ngoại lai từng làm hệ số của \texttt{BuildingArea} \emph{thấp một cách đánh lừa}: Bảng~\ref{tab:nhay} cho thấy tám dòng trên 1,000 m\textsuperscript{2} (trong đó có dòng 44,515 m\textsuperscript{2}) kéo Pearson của \texttt{BuildingArea} xuống 0.092; loại chúng thì hệ số lên 0.556, gần với Spearman (0.637, không đổi vì dựa trên thứ hạng). Tương tự, \texttt{Landsize} tăng từ 0.038 lên 0.132 sau khi loại 26 dòng trên 10,000 m\textsuperscript{2}; hệ số này vẫn thấp vì căn hộ có đất bằng 0 mà giá không thấp hơn nhà riêng ở nhiều suburb. Bài học là hệ số Pearson rất nhạy với vài giá trị cực đoan, nên cần kiểm tra ngoại lai trước khi kết luận ``diện tích không ảnh hưởng đến giá''. \texttt{YearBuilt} có tương quan âm ($-$0.332) nghĩa là nhà xây càng muộn càng rẻ, tức nhà cũ đắt hơn: đây là hệ quả của việc nhà cũ tập trung ở các suburb nội đô danh tiếng và nhà mới chủ yếu là căn hộ rẻ hơn (tương quan giữa \texttt{YearBuilt} và \texttt{Distance} là 0.25), không phải do tuổi tự nó làm tăng giá. \texttt{Distance} chỉ có tương quan $-$0.163, yếu hơn nhiều so với kỳ vọng. Khi tách theo loại nhà, quy luật hiện ra ở nhà riêng ($-$0.329, gấp đôi mức chung), còn căn hộ gần như không phụ thuộc khoảng cách ($-$0.051). Lý do là căn hộ rẻ nhưng tập trung ở gần trung tâm, nên kéo thấp giá ở gần trung tâm: đây là hiệu ứng gộp mà việc nhóm chung che mất (Phép 2). Các thuộc tính đầu vào cũng tương quan với nhau (số phòng và số phòng tắm 0.59; \texttt{Landsize} và \texttt{BuildingArea} 0.17). Tương quan không chứng minh quan hệ nhân quả.
 
 \section{Theo thời gian}\label{sec:xuhuong}
 

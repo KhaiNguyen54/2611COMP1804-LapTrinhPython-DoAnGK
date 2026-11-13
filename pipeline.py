@@ -13,6 +13,10 @@ PROJECT_DIR = Path(__file__).resolve().parent
 DATA_PATH = PROJECT_DIR / "data" / "melb_data.csv"
 OUTPUT_DIR = PROJECT_DIR / "outputs"
 
+# Plausibility limits for residential sales; values above them are treated as outliers.
+MAX_LANDSIZE = 10_000       # m2 (1 ha): larger values are data errors or whole-complex lots
+MAX_BUILDING_AREA = 1_000   # m2: larger values are data entry errors for a single dwelling
+
 sns.set_theme(style="whitegrid")
 
 
@@ -47,6 +51,12 @@ def audit_data(df: pd.DataFrame) -> dict:
         invalid["BuildingArea <= 0"] = int((df["BuildingArea"] <= 0).sum())
     if "YearBuilt" in df.columns:
         invalid["YearBuilt < 1700"] = int((df["YearBuilt"] < 1700).sum())
+    if "Landsize" in df.columns:
+        invalid[f"Landsize > {MAX_LANDSIZE}"] = int((df["Landsize"] > MAX_LANDSIZE).sum())
+    if "BuildingArea" in df.columns:
+        invalid[f"BuildingArea > {MAX_BUILDING_AREA}"] = int((df["BuildingArea"] > MAX_BUILDING_AREA).sum())
+    if "Bathroom" in df.columns:
+        invalid["Bathroom == 0"] = int((df["Bathroom"] == 0).sum())
 
     return {
         "shape": df.shape,
@@ -93,6 +103,15 @@ def clean_data(df_raw: pd.DataFrame) -> pd.DataFrame:
         df.loc[df["BuildingArea"] <= 0, "BuildingArea"] = np.nan
     if "YearBuilt" in df.columns:
         df.loc[df["YearBuilt"] < 1700, "YearBuilt"] = np.nan
+    # Outliers: implausible area values and dwellings with no bathroom. The transaction
+    # (and its price) is kept; only the doubtful value is set to missing.
+    # Landsize == 0 is kept: it means "no private land" (mostly units), not an error.
+    if "Landsize" in df.columns:
+        df.loc[df["Landsize"] > MAX_LANDSIZE, "Landsize"] = np.nan
+    if "BuildingArea" in df.columns:
+        df.loc[df["BuildingArea"] > MAX_BUILDING_AREA, "BuildingArea"] = np.nan
+    if "Bathroom" in df.columns:
+        df.loc[df["Bathroom"] == 0, "Bathroom"] = np.nan
     if "Lattitude" in df.columns:
         df.loc[~df["Lattitude"].between(-39.5, -36.0), "Lattitude"] = np.nan
     if "Longtitude" in df.columns:

@@ -44,7 +44,7 @@ Từ thư mục dự án:
 python pipeline.py
 ```
 
-Kết quả được lưu trong `outputs/`: dữ liệu sau làm sạch (`melb_data_clean.csv`, 13.580 dòng × 27 cột), báo cáo chất lượng, bảng phân tích (loại nhà, vùng, số phòng, suburb, tương quan, tháng bán), nhận xét và 5 biểu đồ (`01`–`05`).
+Kết quả được lưu trong `outputs/`: dữ liệu sau làm sạch (`melb_data_clean.csv`, 13.580 dòng × 27 cột; thiếu thêm 26 ô `Landsize`, 8 ô `BuildingArea` và 34 ô `Bathroom` so với trước khi loại ngoại lai), báo cáo chất lượng, bảng phân tích (loại nhà, vùng, số phòng, suburb, tương quan, tháng bán), nhận xét và 5 biểu đồ (`01`–`05`).
 
 ## 5. Chạy notebook
 
@@ -55,12 +55,13 @@ Mở `melbourne_data_analysis_pipeline.ipynb` trong VS Code/Jupyter và chạy l
 - Dữ liệu gốc không bị ghi đè.
 - Dòng trùng hoàn toàn và dòng không có giá hợp lệ bị loại; với tệp này cả hai đều bằng 0 nên không dòng nào bị xóa (vẫn 13.580 dòng).
 - `Date` chuyển sang kiểu datetime với `dayfirst=True` theo định dạng ngày/tháng/năm của bộ dữ liệu.
-- Giá bán không dương, số phòng không dương, khoảng cách/diện tích đất âm và diện tích xây dựng không dương được đánh dấu thiếu; `YearBuilt < 1700` được xem là không hợp lý và chuyển thành thiếu. Trên tệp này chỉ có 17 dòng `BuildingArea <= 0` và 1 dòng `YearBuilt < 1700` bị ảnh hưởng.
+- Giá bán không dương, số phòng không dương, khoảng cách/diện tích đất âm và diện tích xây dựng không dương được đánh dấu thiếu; `YearBuilt < 1700` được xem là không hợp lý và chuyển thành thiếu. Trên tệp này có 17 dòng `BuildingArea <= 0` và 1 dòng `YearBuilt < 1700` bị ảnh hưởng.
+- Ngoại lai về diện tích và phòng tắm được chuyển thành thiếu (không xóa dòng): `Landsize > 10.000` m² (26 dòng), `BuildingArea > 1.000` m² (8 dòng) và `Bathroom == 0` (34 dòng). Ngưỡng là lựa chọn của dự án (hằng số `MAX_LANDSIZE`, `MAX_BUILDING_AREA` trong `pipeline.py`). `Landsize = 0` được giữ vì phần lớn là căn hộ.
 - `CouncilArea` thiếu (1.369 dòng) được điền `Unknown`; thêm `SaleYear` và `SaleMonth` từ `Date`.
 - `BuildingArea` và `YearBuilt` có tỷ lệ thiếu lớn; mặc định không nội suy tuỳ tiện trong pipeline EDA. Các cột này vẫn còn NaN để tránh tạo ra số liệu giả cho thống kê mô tả.
 - Thêm cờ `*_was_missing` cho một số cột quan trọng trước bước sửa giá trị không hợp lý. Giá trị bị chuyển thành thiếu do kiểm tra tính hợp lệ không nhất thiết là giá trị thiếu ban đầu; nếu dùng cho mô hình ML, cần tách riêng hai loại cờ.
-- Giá ngoại lệ không tự động xóa: dùng biểu đồ/ thống kê để nhận diện và nêu lý do trước khi quyết định.
-- Các giá trị đáng ngờ về diện tích (ví dụ `Landsize` 433.014 m², `BuildingArea` 44.515 m², 1.939 dòng `Landsize = 0`) được giữ nguyên và chỉ được nêu ra; chúng làm hệ số Pearson của `BuildingArea` và `Landsize` với giá thấp hơn thực tế (xem báo cáo, Phép 6).
+- Giá cao không bị loại: 612 dòng vượt ngưỡng IQR (2.350.000 AUD) đều là giao dịch có thể có thật; mô hình dùng `log1p(Price)` để giảm ảnh hưởng của đuôi phải.
+- Hệ quả của việc loại ngoại lai diện tích: Pearson của `BuildingArea` với giá tăng từ 0,09 lên 0,56 và của `Landsize` từ 0,04 lên 0,13 (xem báo cáo, Phép 6). Sai số mô hình gần như không đổi (MAE test của Random Forest khoảng 155.000 → 156.000 AUD trong cùng môi trường).
 
 ## 7. Phạm vi phân tích trong phiên bản nền
 

@@ -32,9 +32,9 @@ Tọa độ ngoài khung Melbourne & 0 & Có kiểm tra, không có dòng nào v
 \texttt{BuildingArea} $\leq$ 0 & 17 & Chuyển thành thiếu \\
 \texttt{YearBuilt} $<$ 1700 & 1 & Chuyển thành thiếu; giá trị nhỏ nhất là năm 1196, không thể có \\
 \texttt{Landsize} $=$ 0 & 1,939 & Giữ nguyên; 1,629 dòng là căn hộ (54\% số căn hộ) \\
-\texttt{Landsize} $>$ 100,000 & 1 & Giữ nguyên (433,014 m\textsuperscript{2}, phi thực tế cho một căn nhà) \\
-\texttt{BuildingArea} $>$ 10,000 & 1 & Giữ nguyên (44,515 m\textsuperscript{2}) \\
-\texttt{Bathroom} $=$ 0 & 34 & Giữ nguyên \\
+\texttt{Landsize} $>$ 10,000 & 26 & Chuyển thành thiếu; lớn nhất 433,014 m\textsuperscript{2}, 15 dòng là căn hộ (lô đất cả tòa nhà) \\
+\texttt{BuildingArea} $>$ 1,000 & 8 & Chuyển thành thiếu; lớn nhất 44,515 m\textsuperscript{2}, không thể là một căn nhà \\
+\texttt{Bathroom} $=$ 0 & 34 & Chuyển thành thiếu; nhà ở không thể không có phòng tắm \\
 \texttt{YearBuilt} $\geq$ 2017 & 19 & Giữ nguyên; 6 dòng có năm xây sau năm bán \\
 \texttt{Distance} $=$ 0, \texttt{Rooms} $\geq$ 7 & 6; 19 & Hợp lý (nhà ngay trung tâm, nhà lớn), giữ nguyên \\
 \bottomrule
@@ -47,9 +47,9 @@ Tọa độ ngoài khung Melbourne & 0 & Có kiểm tra, không có dòng nào v
 \caption{Tỷ lệ dữ liệu thiếu theo cột trong tệp gốc. \texttt{BuildingArea} và \texttt{YearBuilt} thiếu gần một nửa nên không thể xóa các dòng thiếu.}\label{fig:missing}
 \end{figure}
 
-Hai cột diện tích xây dựng và năm xây thiếu rất nhiều: sau làm sạch, xóa mọi dòng thiếu một trong hai cột này sẽ mất 6,740 dòng (49.6\% dữ liệu). Vì vậy dự án không xóa dòng mà để mô hình xử lý giá trị thiếu trong bước tiền xử lý (mục~\ref{sec:thieu}).
+Hai cột diện tích xây dựng và năm xây thiếu rất nhiều: sau làm sạch, xóa mọi dòng thiếu một trong hai cột này sẽ mất 6,744 dòng (49.7\% dữ liệu). Vì vậy dự án không xóa dòng mà để mô hình xử lý giá trị thiếu trong bước tiền xử lý (mục~\ref{sec:thieu}).
 
-Có một điểm cần nói thẳng: \texttt{pipeline.py} chỉ sửa các giá trị \emph{chắc chắn không hợp lệ} (nửa trên của Bảng~\ref{tab:loi}). Các giá trị đáng ngờ nhưng không loại trừ được là sai, như đất bằng 0, diện tích 44,515 m\textsuperscript{2}, phòng tắm bằng 0, được giữ nguyên và chỉ được nêu ra. Quyết định này tránh xóa nhầm giao dịch thật, nhưng có hệ quả cho tương quan (Phép 6, mục~\ref{sec:p6}) và được nêu ở mục~\ref{sec:hanche}.
+\texttt{pipeline.py} xử lý các giá trị bất thường theo hai mức. Giá trị \emph{chắc chắn không hợp lệ} hoặc phi thực tế cho một căn nhà (diện tích xây bằng 0 hoặc trên 1,000 m\textsuperscript{2}, đất trên 10,000 m\textsuperscript{2}, phòng tắm bằng 0, năm xây trước 1700) được chuyển thành thiếu, không xóa dòng, để giữ lại phần thông tin còn dùng được của giao dịch. Giá trị đáng ngờ nhưng có thể có thật, như đất bằng 0 ở căn hộ hay giá bán rất cao, được giữ nguyên. Ngưỡng 10,000 m\textsuperscript{2} và 1,000 m\textsuperscript{2} là lựa chọn của dự án, đặt sau khi xem các dòng vượt ngưỡng; ảnh hưởng của lựa chọn này lên tương quan và mô hình được đánh giá ở mục~\ref{sec:p6} và mục~\ref{sec:chonmohinh}.
 
 \section{Bảng quy tắc làm sạch}\label{sec:quytac}
 Làm sạch được viết thành hàm \texttt{clean\_data()} trong \texttt{pipeline.py}. Hàm này không dùng thống kê của tập dữ liệu nào, và hầu hết quy tắc chuyển giá trị không hợp lệ thành thiếu (\texttt{NaN}) thay vì xóa dòng. Bảng~\ref{tab:quytac} gồm quy tắc, lý do và số dòng bị ảnh hưởng; mã rút gọn nằm ở Phụ lục~\ref{pl:quytac}.
@@ -65,13 +65,15 @@ Làm sạch được viết thành hàm \texttt{clean\_data()} trong \texttt{pip
 1 & Loại dòng trùng hoàn toàn & Tránh đếm một giao dịch hai lần & 0 \\
 2 & \texttt{Date} $\to$ kiểu ngày, \texttt{dayfirst=True} & Dữ liệu ghi ngày/tháng/năm; cần để lấy năm và tháng bán & 13,580 đổi kiểu, 0 lỗi \\
 3 & Ép các cột số về kiểu số & Giá trị không chuyển được sẽ thành thiếu & 0 \\
-4 & Thêm cờ \texttt{*\_was\_missing} cho \texttt{Car}, \texttt{BuildingArea}, \texttt{YearBuilt}, \texttt{CouncilArea} & Ghi nhận ô vốn đã thiếu \emph{trước} khi quy tắc 5 đặt thêm giá trị thiếu & 62; 6,450; 5,375; 1,369 \\
-5 & \texttt{BuildingArea} $\leq$ 0 $\to$ thiếu & Diện tích xây bằng 0 không hợp lý & 17 \\
+4 & Thêm cờ \texttt{*\_was\_missing} cho \texttt{Car}, \texttt{BuildingArea}, \texttt{YearBuilt}, \texttt{CouncilArea} & Ghi nhận ô vốn đã thiếu \emph{trước} khi các quy tắc 5--8 đặt thêm giá trị thiếu & 62; 6,450; 5,375; 1,369 \\
+5 & \texttt{BuildingArea} $\leq$ 0 hoặc $>$ 1,000 $\to$ thiếu & Diện tích xây bằng 0 hoặc cỡ cả khu phức hợp là lỗi nhập liệu & 17; 8 \\
 6 & \texttt{YearBuilt} $<$ 1700 $\to$ thiếu & Năm 1196 là lỗi nhập liệu & 1 \\
-7 & \texttt{Price}, \texttt{Rooms} $\leq$ 0; \texttt{Distance}, \texttt{Landsize} $<$ 0; tọa độ ngoài khung Melbourne $\to$ thiếu & Giá trị bất khả thi & 0 \\
-8 & Loại dòng không có giá hợp lệ & Giá là biến mục tiêu, không điền & 0 \\
-9 & \texttt{CouncilArea} thiếu $\to$ ``Unknown'' & Giữ ``không biết'' thành một nhóm riêng thay vì bỏ dòng & 1,369 \\
-10 & Thêm \texttt{SaleYear}, \texttt{SaleMonth} từ \texttt{Date} & Phục vụ phân tích theo thời gian và làm đặc trưng & 13,580 \\
+7 & \texttt{Landsize} $>$ 10,000 $\to$ thiếu & Đất trên 1 ha không đại diện cho một căn nhà; kéo lệch tương quan & 26 \\
+8 & \texttt{Bathroom} $=$ 0 $\to$ thiếu & Nhà ở phải có phòng tắm; số 0 là chưa ghi nhận & 34 \\
+9 & \texttt{Price}, \texttt{Rooms} $\leq$ 0; \texttt{Distance}, \texttt{Landsize} $<$ 0; tọa độ ngoài khung Melbourne $\to$ thiếu & Giá trị bất khả thi & 0 \\
+10 & Loại dòng không có giá hợp lệ & Giá là biến mục tiêu, không điền & 0 \\
+11 & \texttt{CouncilArea} thiếu $\to$ ``Unknown'' & Giữ ``không biết'' thành một nhóm riêng thay vì bỏ dòng & 1,369 \\
+12 & Thêm \texttt{SaleYear}, \texttt{SaleMonth} từ \texttt{Date} & Phục vụ phân tích theo thời gian và làm đặc trưng & 13,580 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -79,15 +81,15 @@ Làm sạch được viết thành hàm \texttt{clean\_data()} trong \texttt{pip
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.78\linewidth]{f_cleaning.png}
-\caption{Số dòng bị ảnh hưởng bởi từng quy tắc làm sạch. Quy tắc cho \texttt{CouncilArea} ảnh hưởng nhiều nhất; hầu hết quy tắc kiểm tra giá trị bất khả thi không bắt được dòng nào.}\label{fig:cleaning}
+\caption{Số dòng bị ảnh hưởng bởi từng quy tắc làm sạch. Quy tắc cho \texttt{CouncilArea} ảnh hưởng nhiều nhất; các quy tắc ngoại lai chỉ chạm vào vài chục dòng, và các quy tắc kiểm tra giá trị bất khả thi không bắt được dòng nào.}\label{fig:cleaning}
 \end{figure}
 
-Tổng số dòng bị xóa là 0: sau làm sạch bảng vẫn có 13,580 dòng và 27 cột (21 cột gốc, 4 cờ thiếu, \texttt{SaleYear}, \texttt{SaleMonth}). Số ô thiếu thay đổi như sau: \texttt{BuildingArea} từ 6,450 lên 6,467 (6,450 ô thiếu sẵn có và 17 ô có giá trị bằng 0), \texttt{YearBuilt} từ 5,375 lên 5,376, còn \texttt{CouncilArea} từ 1,369 xuống 0 vì được thay bằng ``Unknown''. \texttt{Car} vẫn thiếu 62 ô.
+Tổng số dòng bị xóa là 0: sau làm sạch bảng vẫn có 13,580 dòng và 27 cột (21 cột gốc, 4 cờ thiếu, \texttt{SaleYear}, \texttt{SaleMonth}). Số ô thiếu thay đổi như sau: \texttt{BuildingArea} từ 6,450 lên 6,475 (thêm 17 ô bằng 0 và 8 ô trên 1,000 m\textsuperscript{2}), \texttt{YearBuilt} từ 5,375 lên 5,376, \texttt{Landsize} từ 0 lên 26, \texttt{Bathroom} từ 0 lên 34, còn \texttt{CouncilArea} từ 1,369 xuống 0 vì được thay bằng ``Unknown''. \texttt{Car} vẫn thiếu 62 ô.
 
 \section{Xử lý dữ liệu thiếu và ngoại lai}\label{sec:thieu}
-\paragraph{Dữ liệu thiếu.} \texttt{pipeline.py} cố ý không điền \texttt{BuildingArea} và \texttt{YearBuilt}, vì tỷ lệ thiếu cao và phép điền có thể làm méo thống kê mô tả; các phân tích dùng những dòng có giá trị quan sát được. Việc điền chỉ thực hiện ở bước mô hình, bên trong \texttt{Pipeline} của scikit-learn: cột số điền bằng \emph{trung vị của tập train}, cột phân loại điền bằng giá trị phổ biến nhất của tập train. Cờ \texttt{*\_was\_missing} được đưa vào mô hình vì việc thiếu không hẳn ngẫu nhiên. Ví dụ, giá trung vị của các dòng thiếu \texttt{BuildingArea} là 917,000 AUD, so với 895,000 ở các dòng có giá trị; với \texttt{YearBuilt} là 937,500 so với 880,000. Đặc biệt, các dòng có \texttt{Landsize} bằng 0 có giá trung vị 560,000 so với 973,500 ở các dòng còn lại, vì 1,629 trong 1,939 dòng đó là căn hộ, loại rẻ nhất.
+\paragraph{Dữ liệu thiếu.} \texttt{pipeline.py} cố ý không điền \texttt{BuildingArea} và \texttt{YearBuilt}, vì tỷ lệ thiếu cao và phép điền có thể làm méo thống kê mô tả; các phân tích dùng những dòng có giá trị quan sát được. Việc điền chỉ thực hiện ở bước mô hình, bên trong \texttt{Pipeline} của scikit-learn: cột số điền bằng \emph{trung vị của tập train}, cột phân loại điền bằng giá trị phổ biến nhất của tập train. Cờ \texttt{*\_was\_missing} được đưa vào mô hình vì việc thiếu không hẳn ngẫu nhiên. Ví dụ, giá trung vị của các dòng thiếu \texttt{BuildingArea} là 917,000 AUD, so với 895,000 ở các dòng có giá trị; với \texttt{YearBuilt} là 937,500 so với 880,000. Đặc biệt, các dòng có \texttt{Landsize} bằng 0 có giá trung vị 560,000 so với 975,000 ở các dòng có đất, vì 1,629 trong 1,939 dòng đó là căn hộ, loại rẻ nhất.
 
-\paragraph{Ngoại lai.} Với giá, quy tắc tứ phân vị (Q1 $=$ 650,000, Q3 $=$ 1,330,000) cho ngưỡng trên là 2,350,000 AUD; 612 dòng (4.5\%) vượt ngưỡng này. Các dòng đó được giữ nguyên vì đều là giao dịch có thể có thật (Căn nhà ở Mulgrave 9,000,000 AUD với ba phòng là điểm bất thường lớn nhất). Thay vì loại bỏ, mô hình Random Forest dự đoán \emph{log của giá} để giảm ảnh hưởng của đuôi phải: độ lệch của giá giảm từ 2.24 xuống 0.18 (Hình~\ref{fig:hist}). Các ngoại lai về diện tích (\texttt{Landsize} 433,014 m\textsuperscript{2}, \texttt{BuildingArea} 44,515 m\textsuperscript{2}) \emph{không} được loại; chúng chỉ được nêu trong Bảng~\ref{tab:loi} và ảnh hưởng đến tương quan ở mục~\ref{sec:p6}.
+\paragraph{Ngoại lai.} Với giá, quy tắc tứ phân vị (Q1 $=$ 650,000, Q3 $=$ 1,330,000) cho ngưỡng trên là 2,350,000 AUD; 612 dòng (4.5\%) vượt ngưỡng này. Các dòng đó được giữ nguyên vì đều là giao dịch có thể có thật (Căn nhà ở Mulgrave 9,000,000 AUD với ba phòng là điểm bất thường lớn nhất). Thay vì loại bỏ, mô hình Random Forest dự đoán \emph{log của giá} để giảm ảnh hưởng của đuôi phải: độ lệch của giá giảm từ 2.24 xuống 0.18 (Hình~\ref{fig:hist}). Khác với giá, ngoại lai về \emph{diện tích} là lỗi nhập liệu hoặc lô đất của cả khu phức hợp, nên được xử lý: \texttt{Landsize} trên 10,000 m\textsuperscript{2} (26 dòng, lớn nhất 433,014) và \texttt{BuildingArea} trên 1,000 m\textsuperscript{2} (8 dòng, lớn nhất 44,515) chuyển thành thiếu, rồi được điền bằng trung vị tập train trong \texttt{Pipeline}. Việc này khiến hệ số Pearson giữa \texttt{BuildingArea} và giá tăng từ 0.09 lên 0.56 (mục~\ref{sec:p6}). Dòng \texttt{Landsize} bằng 0 không bị coi là ngoại lai vì phần lớn là căn hộ.
 
 \section{Chia tập train, validation, test}\label{sec:chia}
 \texttt{train\_model.py} chia dữ liệu \emph{ngẫu nhiên} hai lần với \texttt{random\_state=42}: trước hết tách riêng 20\% làm tập test, sau đó tách 20\% phần còn lại làm tập validation. Tập test được giữ riêng từ đầu và chỉ dùng để chấm điểm mô hình đã chọn.

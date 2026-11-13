@@ -8,14 +8,14 @@ Từ bảy phép phân tích ở Chương~\ref{ch:phantich} và kết quả mô 
   \item \textbf{Số phòng có quan hệ đơn điệu rõ với giá.} Nhà 4 phòng có trung vị 1,285,000, gấp 3.3 lần nhà 1 phòng (385,000); Pearson giữa giá và số phòng là 0.497 (Phép 4, 6).
   \item \textbf{Khoảng cách đến trung tâm có ảnh hưởng, nhưng số liệu gộp đánh giá thấp nó.} Tương quan chung chỉ $-$0.163; riêng nhà riêng là $-$0.329, còn căn hộ gần như không phụ thuộc ($-$0.051), vì căn hộ rẻ nhưng tập trung gần trung tâm (Phép 6).
   \item \textbf{Giá lệch phải mạnh.} Độ lệch của giá là 2.24 và giảm còn 0.18 khi lấy log; trung bình (1,075,684) cao hơn trung vị (903,000) khoảng 19\% (Phép 1). Đây là lý do dùng trung vị khi so sánh và dùng log của giá khi huấn luyện Random Forest.
-  \item \textbf{Ngoại lai diện tích che mờ tương quan.} Pearson của \texttt{BuildingArea} với giá là 0.092 khi giữ dòng 44,515 m\textsuperscript{2}, nhưng 0.365 khi loại dòng đó và Spearman là 0.636; không nên kết luận diện tích không liên quan đến giá (Phép 6).
-  \item \textbf{Dữ liệu thiếu mang thông tin.} \texttt{BuildingArea} thiếu 47.6\% và \texttt{YearBuilt} thiếu 39.6\% sau làm sạch. Có 1,939 dòng \texttt{Landsize} bằng 0, trong đó 1,629 là căn hộ; các dòng này có giá trung vị 560,000 so với 973,500 ở các dòng còn lại, nên ``thiếu'' ở đây gần như đồng nghĩa với ``căn hộ'' và không phải nhiễu ngẫu nhiên (Chương~\ref{ch:lamsach}).
+  \item \textbf{Ngoại lai diện tích che mờ tương quan.} Pearson của \texttt{BuildingArea} với giá là 0.092 khi còn dòng 44,515 m\textsuperscript{2}, nhưng 0.556 sau khi loại 8 dòng trên 1,000 m\textsuperscript{2}, gần Spearman (0.637); \texttt{Landsize} tăng từ 0.038 lên 0.132 sau khi loại 26 dòng trên 10,000 m\textsuperscript{2}. Diện tích xây là thuộc tính có tương quan cao nhất với giá (Phép 6).
+  \item \textbf{Dữ liệu thiếu mang thông tin.} \texttt{BuildingArea} thiếu 47.7\% và \texttt{YearBuilt} thiếu 39.6\% sau làm sạch. Có 1,939 dòng \texttt{Landsize} bằng 0, trong đó 1,629 là căn hộ; các dòng này có giá trung vị 560,000 so với 975,000 ở các dòng có đất, nên ``thiếu'' ở đây gần như đồng nghĩa với ``căn hộ'' và không phải nhiễu ngẫu nhiên (Chương~\ref{ch:lamsach}).
   \item \textbf{Trung vị theo tháng chịu ảnh hưởng của cơ cấu giao dịch.} Tháng 7 có trung vị thấp nhất (773,500), nhưng riêng tháng 7/2017 chỉ có 19.3\% giao dịch ở Southern Metropolitan so với khoảng 30\% hai tháng kề bên, nên điểm trũng chưa chắc là giá giảm (Phép 7).
-  \item \textbf{Mô hình vượt xa baseline nhưng yếu ở phân khúc cao cấp.} Random Forest đạt MAE 155,443 AUD trên tập test, thấp hơn baseline (439,350) 64.6\%, và $R^2$ là 0.8236. Với các căn từ 1,500,000 AUD, MAE tăng lên 365,831 và mô hình dự đoán thấp hơn thực tế trung bình 230,745 AUD (Chương~\ref{ch:mohinh}).
+  \item \textbf{Mô hình vượt xa baseline nhưng yếu ở phân khúc cao cấp.} Random Forest đạt MAE 156,203 AUD trên tập test, thấp hơn baseline (439,350) 64.4\%, và $R^2$ là 0.8225. Với các căn từ 1,500,000 AUD, MAE tăng lên 368,100 và mô hình dự đoán thấp hơn thực tế trung bình 231,515 AUD (Chương~\ref{ch:mohinh}).
 \end{enumerate}
 
 \section{Hạn chế và hướng cải thiện}\label{sec:hanche}
-Bảng~\ref{tab:hanche} nêu các hạn chế của dữ liệu và cách làm, cùng hướng cải thiện tương ứng. Những mục đầu là hạn chế của chính mã nguồn hiện tại và có thể sửa ngay.
+Bảng~\ref{tab:hanche} nêu các hạn chế của dữ liệu và cách làm, cùng hướng cải thiện tương ứng. Những mục đầu là hạn chế của chính cách làm hiện tại và có thể sửa ngay.
 
 \begin{table}[H]
 \centering
@@ -25,17 +25,15 @@ Bảng~\ref{tab:hanche} nêu các hạn chế của dữ liệu và cách làm, 
 \toprule
 Hạn chế & Hướng cải thiện \\
 \midrule
-Ngoại lai và giá trị đáng ngờ về diện tích vẫn còn trong dữ liệu sạch (\texttt{Landsize} 433,014 m\textsuperscript{2}; \texttt{BuildingArea} 44,515 m\textsuperscript{2}; 1,939 dòng \texttt{Landsize} $=$ 0; 34 dòng \texttt{Bathroom} $=$ 0), làm sai lệch tương quan và thống kê trung bình. & Thêm quy tắc đặt các giá trị này thành thiếu trong \texttt{clean\_data()} rồi chạy lại \texttt{pipeline.py} và \texttt{train\_model.py}; so sánh sai số trước và sau để kiểm tra tác động. \\
 Chia train/validation/test \emph{ngẫu nhiên} trong khi dữ liệu có ngày bán; sai số có thể lạc quan so với dự báo giai đoạn sau. & Chia theo thời gian (train là các tháng đầu, test là các tháng cuối) và báo cáo cả hai cách để thấy chênh lệch. \\
 Mô hình dùng \texttt{Method} (chỉ biết sau khi bán), \texttt{Postcode} (trùng thông tin suburb) và \texttt{Bedroom2} (trùng \texttt{Rooms} 95\%). & Chạy lại không có \texttt{Method} (và thử bỏ thêm \texttt{Postcode}, \texttt{Bedroom2}) để đo sai số thật khi định giá trước lúc bán; giữ phiên bản nào tùy mục tiêu. \\
 Siêu tham số của Ridge và Random Forest đặt cố định, chưa tinh chỉnh; mới có hai mô hình ứng viên. & Tìm siêu tham số bằng kiểm định chéo trên tập train; thử thêm mô hình tăng cường gradient (ví dụ \texttt{HistGradientBoostingRegressor}, xử lý được giá trị thiếu). \\
-Phân khúc từ 1,500,000 AUD có sai số lớn và bị dự đoán thấp (lệch $+$230,745). & Dùng hồi quy phân vị hoặc khoảng dự đoán, hoặc mô hình riêng cho phân khúc cao cấp; báo cáo thêm MAPE theo phân khúc. \\
+Phân khúc từ 1,500,000 AUD có sai số lớn và bị dự đoán thấp (lệch $+$231,515). & Dùng hồi quy phân vị hoặc khoảng dự đoán, hoặc mô hình riêng cho phân khúc cao cấp; báo cáo thêm MAPE theo phân khúc. \\
 Suburb có 314 giá trị, 59 suburb dưới 5 giao dịch; one-hot cho các suburb thưa học kém. & Gộp các suburb thưa hoặc dùng mã hóa mục tiêu có làm mịn (chỉ \texttt{fit} trên tập train). \\
 Giai đoạn ngắn và có khoảng trống: 19 tháng có giao dịch, quý 1/2016 chỉ có 28 giao dịch, không có giao dịch tháng 3/2016 và tháng 1/2017; không tách được mùa vụ khỏi xu hướng. & Thu thêm dữ liệu nhiều năm, đủ các tháng. \\
 Chỉ có các căn đã bán (thiên lệch chọn mẫu) và giá danh nghĩa, không có biến vĩ mô (lãi suất, thu nhập, nguồn cung). & Bổ sung dữ liệu niêm yết và chuỗi vĩ mô theo tháng nếu có; nêu rõ phạm vi áp dụng của mô hình. \\
 Vị trí chỉ có khoảng cách đến trung tâm và tọa độ, chưa có tiện ích (ga, trường học, công viên). & Thêm đặc trưng từ dữ liệu mở về giao thông và tiện ích. \\
 Dữ liệu gốc được cào từ tin đăng công khai trên domain.com.au (Chương~\ref{ch:nguon}) nên có thể chứa sai lệch của tin đăng; đơn vị m\textsuperscript{2} của diện tích được suy ra chứ không có mô tả chính thức. & Đối chiếu thêm nguồn khác khi có thể; liên hệ tác giả bộ dữ liệu để xác nhận đơn vị. Chia sẻ lại dữ liệu phải theo CC BY-NC-SA 4.0 (ghi công, phi thương mại, chia sẻ tương tự). \\
-Kho mã chưa có giao diện người dùng, cơ sở dữ liệu và phân quyền. & Xây dashboard Streamlit trên \texttt{outputs/melb\_data\_clean.csv} và mô hình đã lưu, như hướng phát triển đã ghi trong notebook. \\
 \bottomrule
 \end{tabular}
 \end{table}

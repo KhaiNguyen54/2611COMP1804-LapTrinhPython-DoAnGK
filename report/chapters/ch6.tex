@@ -39,13 +39,13 @@ Hai mô hình được huấn luyện trên tập train (8,691 dòng) và đo tr
 \toprule
 Mô hình & MAE & RMSE & $R^2$ \\
 \midrule
-Random Forest (log giá) & 154,447 & 259,812 & 0.8139 \\
-Ridge & 234,939 & 340,370 & 0.6806 \\
+Random Forest (log giá) & 154,865 & 259,176 & 0.8148 \\
+Ridge & 231,137 & 334,080 & 0.6923 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Random Forest có MAE thấp hơn Ridge 34\% và được chọn. Sau khi chọn, mô hình được huấn luyện lại trên toàn bộ phần train gộp validation (10,864 dòng) rồi mới đo trên tập test.
+Random Forest có MAE thấp hơn Ridge 33\% và được chọn. Sau khi chọn, mô hình được huấn luyện lại trên toàn bộ phần train gộp validation (10,864 dòng) rồi mới đo trên tập test.
 
 \section{Kết quả trên tập test}\label{sec:ketquatest}
 \begin{table}[H]
@@ -56,15 +56,15 @@ Random Forest có MAE thấp hơn Ridge 34\% và được chọn. Sau khi chọn
 \toprule
 Mô hình & MAE & RMSE & $R^2$ \\
 \midrule
-Random Forest (log giá), mô hình được chọn & 155,443 & 264,731 & 0.8236 \\
+Random Forest (log giá), mô hình được chọn & 156,203 & 265,501 & 0.8225 \\
 Baseline (trung vị) & 439,350 & 653,710 & $-$0.0758 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Mô hình được chọn có MAE thấp hơn baseline 64.6\% (155,443 so với 439,350) và giải thích khoảng 82\% phương sai của giá, trong khi baseline có $R^2$ hơi âm ($-$0.0758), tức tệ hơn việc dự đoán bằng trung bình của tập test; điều này bình thường, vì giá lệch phải nên trung vị thấp hơn trung bình và một mô hình luôn đoán trung vị không thể đạt $R^2$ dương. Kết quả test sát kết quả validation (MAE 155,443 so với 154,447; $R^2$ 0.8236 so với 0.8139), nghĩa là việc chọn mô hình không bị lạc quan do tập validation.
+Mô hình được chọn có MAE thấp hơn baseline 64.4\% (156,203 so với 439,350) và giải thích khoảng 82\% phương sai của giá, trong khi baseline có $R^2$ hơi âm ($-$0.0758), tức tệ hơn việc dự đoán bằng trung bình của tập test; điều này bình thường, vì giá lệch phải nên trung vị thấp hơn trung bình và một mô hình luôn đoán trung vị không thể đạt $R^2$ dương. Kết quả test sát kết quả validation (MAE 156,203 so với 154,865; $R^2$ 0.8225 so với 0.8148), nghĩa là việc chọn mô hình không bị lạc quan do tập validation.
 
-Từ \texttt{outputs/test\_predictions.csv}, sai số tương đối trung bình (MAPE) là 13.7\%, sai số tương đối trung vị là 10.0\%; 49.9\% số dự đoán lệch không quá 10\% và 78.4\% lệch không quá 20\% so với giá thực. Tức là sai số điển hình khoảng một phần mười giá, nhưng MAE 155,443 AUD vẫn lớn so với mức giá trung vị 903,000.
+Từ \texttt{outputs/test\_predictions.csv}, sai số tương đối trung bình (MAPE) là 13.7\%, sai số tương đối trung vị là 10.0\%; 50.1\% số dự đoán lệch không quá 10\% và 77.8\% lệch không quá 20\% so với giá thực. Tức là sai số điển hình khoảng một phần mười giá, nhưng MAE 156,203 AUD vẫn lớn so với mức giá trung vị 903,000.
 
 \begin{figure}[H]
 \centering
@@ -78,7 +78,7 @@ Từ \texttt{outputs/test\_predictions.csv}, sai số tương đối trung bình
 \caption{Phân phối sai số (thực tế trừ dự đoán) trên tập test. Sai số dương nghĩa là mô hình dự đoán thấp hơn giá thực.}\label{fig:residual}
 \end{figure}
 
-\textbf{Cách đọc:} Hình~\ref{fig:actual} cho thấy các điểm bám sát đường chéo đến khoảng 2 triệu AUD, rồi tản rộng và nằm dưới đường chéo ở các giá cao hơn 3 triệu: mô hình dự đoán thấp hơn thực tế ở các căn rất đắt. Hình~\ref{fig:residual} cho thấy sai số tập trung quanh 0 (trung vị $-$1,538 AUD) nhưng đuôi phải dài hơn đuôi trái (trung bình $+$29,756 AUD).
+\textbf{Cách đọc:} Hình~\ref{fig:actual} cho thấy các điểm bám sát đường chéo đến khoảng 2 triệu AUD, rồi tản rộng và nằm dưới đường chéo ở các giá cao hơn 3 triệu: mô hình dự đoán thấp hơn thực tế ở các căn rất đắt. Hình~\ref{fig:residual} cho thấy sai số tập trung quanh 0 (trung vị $+$361 AUD) nhưng đuôi phải dài hơn đuôi trái (trung bình $+$30,173 AUD).
 
 \section{Phân khúc mô hình dự đoán kém}\label{sec:phankhuc}
 Bảng~\ref{tab:saiso-gia} chia tập test theo khoảng giá thực tế, Bảng~\ref{tab:saiso-loai} chia theo loại nhà. ``Lệch trung bình'' là trung bình của (thực tế trừ dự đoán): dương nghĩa là mô hình dự đoán thấp hơn thực tế.
@@ -91,10 +91,10 @@ Bảng~\ref{tab:saiso-gia} chia tập test theo khoảng giá thực tế, Bản
 \toprule
 Khoảng giá & Số dòng & MAE & MAPE & Lệch trung bình \\
 \midrule
-Dưới 600,000 & 520 & 70,344 & 16.1\% & $-$46,120 \\
-600,000 đến dưới 1,000,000 & 1,020 & 92,390 & 11.8\% & $-$22,179 \\
-1,000,000 đến dưới 1,500,000 & 665 & 157,034 & 12.7\% & $+$14,304 \\
-Từ 1,500,000 & 511 & 365,831 & 16.2\% & $+$230,745 \\
+Dưới 600,000 & 520 & 71,087 & 16.0\% & $-$46,451 \\
+600,000 đến dưới 1,000,000 & 1,020 & 92,289 & 12.0\% & $-$22,179 \\
+1,000,000 đến dưới 1,500,000 & 665 & 157,964 & 13.0\% & $+$15,674 \\
+Từ 1,500,000 & 511 & 368,100 & 16.0\% & $+$231,515 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -107,20 +107,20 @@ Từ 1,500,000 & 511 & 365,831 & 16.2\% & $+$230,745 \\
 \toprule
 Loại nhà & Số dòng & MAE & MAPE & Lệch trung bình \\
 \midrule
-Nhà riêng (\texttt{h}) & 1,917 & 179,797 & 13.6\% & $+$37,219 \\
-Liền kề (\texttt{t}) & 211 & 107,758 & 12.5\% & $-$18,445 \\
-Căn hộ (\texttt{u}) & 588 & 93,155 & 14.3\% & $+$22,723 \\
+Nhà riêng (\texttt{h}) & 1,917 & 180,545 & 13.7\% & $+$38,193 \\
+Liền kề (\texttt{t}) & 211 & 109,692 & 12.6\% & $-$19,001 \\
+Căn hộ (\texttt{u}) & 588 & 93,533 & 14.5\% & $+$21,672 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Phân khúc yếu nhất là các căn từ 1,500,000 AUD trở lên: MAE 365,831 (gấp 5.2 lần phân khúc dưới 600,000) và mô hình dự đoán thấp hơn thực tế trung bình 230,745 AUD. Ba sai số lớn nhất đều là nhà riêng: căn ở Kew giá thực 6,500,000 bị dự đoán 3,584,952, căn ở Parkville giá thực 3,970,000 bị dự đoán 1,968,085, còn căn ở South Melbourne giá thực 770,000 lại bị dự đoán 2,632,451 (sai theo chiều ngược). Phân khúc dưới 600,000 có MAE nhỏ nhất nhưng MAPE cao nhất (16.1\%) và bị dự đoán cao hơn thực tế trung bình 46,120 AUD, vì sai số tuyệt đối nhỏ so với một mức giá thấp vẫn là tỷ lệ lớn. Theo vùng, Southern Metropolitan có MAE cao nhất (222,811) so với 111,338 đến 137,799 ở các vùng đô thị khác, một phần vì vùng này tập trung nhà đắt. Các vùng Victoria ngoài đô thị chỉ có 5 đến 16 dòng trong tập test nên không đủ để kết luận.
+Phân khúc yếu nhất là các căn từ 1,500,000 AUD trở lên: MAE 368,100 (gấp 5.2 lần phân khúc dưới 600,000) và mô hình dự đoán thấp hơn thực tế trung bình 231,515 AUD. Ba sai số lớn nhất đều là nhà riêng đắt bị dự đoán thấp: căn ở Kew giá thực 6,500,000 bị dự đoán 3,513,058, căn ở Parkville giá thực 3,970,000 bị dự đoán 2,032,176, căn ở Middle Park giá thực 3,750,000 bị dự đoán 1,895,453; sai lớn nhất theo chiều ngược là căn ở South Melbourne giá thực 770,000 bị dự đoán 2,558,914. Phân khúc dưới 600,000 có MAE nhỏ nhất nhưng MAPE cao nhất (16.0\%) và bị dự đoán cao hơn thực tế trung bình 46,451 AUD, vì sai số tuyệt đối nhỏ so với một mức giá thấp vẫn là tỷ lệ lớn. Theo vùng, Southern Metropolitan có MAE cao nhất (224,961) so với 112,156 đến 140,943 ở các vùng đô thị khác, một phần vì vùng này tập trung nhà đắt. Các vùng Victoria ngoài đô thị chỉ có 5 đến 16 dòng trong tập test nên không đủ để kết luận.
 
 \section{Những điều cần lưu ý khi đọc kết quả}\label{sec:luuy}
 \begin{itemize}[nosep]
   \item \textbf{Chia ngẫu nhiên.} Tập test được chọn ngẫu nhiên từ toàn bộ giai đoạn 2016--2017 chứ không phải giai đoạn sau cùng, nên kết quả đo khả năng dự đoán một giao dịch cùng thời kỳ, không phải dự báo giá tương lai (mục~\ref{sec:chia}).
   \item \textbf{Đặc trưng có thể quá ``dễ''.} Mô hình dùng \texttt{Method} (phương thức bán, chỉ biết khi quá trình bán đã diễn ra; trung vị giá phương thức \texttt{SP} là 770,000 so với \texttt{S} là 925,000), \texttt{Postcode} (cùng thông tin với suburb) và \texttt{Bedroom2} (trùng \texttt{Rooms} ở 95\% số dòng). Nếu mục tiêu là định giá \emph{trước khi bán}, \texttt{Method} nên bị loại và cần chạy lại để biết sai số thật (mục~\ref{sec:hanche}).
-  \item \textbf{Ngoại lai diện tích còn nguyên.} Các giá trị \texttt{Landsize} 433,014 m\textsuperscript{2} và \texttt{BuildingArea} 44,515 m\textsuperscript{2} được chuẩn hóa cùng các giá trị còn lại; Random Forest ít nhạy với chúng nhưng Ridge thì có.
-  \item \textbf{Số đo có thể lệch nhẹ giữa các máy.} Random Forest và các phiên bản scikit-learn khác nhau có thể cho MAE chênh vài trăm AUD (khi chạy lại trong môi trường khác, MAE trên test là 155,236 thay vì 155,443); báo cáo dùng số trong \texttt{outputs/} của kho mã.
+  \item \textbf{Loại ngoại lai gần như không đổi độ chính xác.} Trên cùng một môi trường chạy, trước khi loại ngoại lai diện tích MAE test của Random Forest là 155,236 AUD ($R^2$ 0.8234), sau khi loại là 156,203 ($R^2$ 0.8225); Ridge trên validation có MAE giảm từ 234,939 xuống 231,137. Chênh lệch dưới 1\% ở Random Forest, nên báo cáo không khẳng định việc loại ngoại lai cải thiện dự đoán; lợi ích rõ rệt nằm ở thống kê mô tả và tương quan (Phép 6), vì Random Forest vốn ít nhạy với giá trị cực đoan.
+  \item \textbf{Số đo có thể lệch nhẹ giữa các máy.} Random Forest và các phiên bản scikit-learn khác nhau có thể cho MAE chênh vài trăm AUD (trước khi bổ sung quy tắc loại ngoại lai, chạy ở hai môi trường khác nhau đã cho MAE test 155,443 và 155,236); báo cáo dùng số trong \texttt{outputs/} của kho mã.
   \item \textbf{Tệp mô hình.} \texttt{models/best\_pipeline.joblib} phụ thuộc phiên bản thư viện; cần chạy lại \texttt{train\_model.py} trên máy sử dụng.
 \end{itemize}
