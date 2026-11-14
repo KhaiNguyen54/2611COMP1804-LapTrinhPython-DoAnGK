@@ -26,20 +26,20 @@ OUTPUT_DIR = PROJECT_DIR / "outputs"
 TARGET = "Price"
 RANDOM_STATE = 42
 
-# Chi dung cac cot co y nghia khi du doan gia; khong dua Address/SellerG vao
-# de han che cardinality cao va phu thuoc qua muc vao tung tin dang/nguoi ban.
+# Biến số 
 NUMERIC_CANDIDATES = [
     "Rooms", "Bedroom2", "Bathroom", "Car", "Distance",
     "Landsize", "BuildingArea", "YearBuilt", "Lattitude", "Longtitude",
     "Propertycount", "Car_was_missing", "BuildingArea_was_missing",
     "YearBuilt_was_missing", "CouncilArea_was_missing", "SaleYear", "SaleMonth",
 ]
+# Biến phân loại
 CATEGORICAL_CANDIDATES = [
     "Suburb", "Type", "Method", "Postcode", "CouncilArea", "Regionname",
 ]
 
-
-def build_preprocessor(numeric_features, categorical_features):
+# Hàm tiền xử lý dữ liệu
+def build_preprocessor(numeric_features, categorical_features): # 2 tham số truyền 
     numeric_pipeline = Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
         ("scaler", StandardScaler()),
@@ -57,20 +57,21 @@ def build_preprocessor(numeric_features, categorical_features):
         remainder="drop",
     )
 
-
+# Hàm xây dựng mô hình ước lượng với tiền xử lý và biến mục tiêu được biến đổi
 def build_estimator(regressor, numeric_features, categorical_features):
     pipeline = Pipeline([
         ("preprocessor", build_preprocessor(numeric_features, categorical_features)),
         ("model", regressor),
     ])
-    # Gia nha lech phai; huan luyen tren log(Price), nhung predict tra ve AUD.
+
+# Giá nhà lệch phải, train theo log1p(Price) và dự đoán ngược lại bằng expm1.   
     return TransformedTargetRegressor(
         regressor=pipeline,
         func=np.log1p,
         inverse_func=np.expm1,
     )
 
-
+# Hàm đánh giá mô hình qua các chỉ số (MAE, RMSE, R2)
 def evaluate(y_true, y_pred):
     return {
         "MAE_AUD": float(mean_absolute_error(y_true, y_pred)),
@@ -89,7 +90,7 @@ def main():
     if TARGET not in df.columns:
         raise KeyError(f"Dataset khong co cot muc tieu {TARGET!r}.")
 
-    # Loai cac dong khong co gia hop le; khong impute bien muc tieu.
+# Loại bỏ các giá trị không hợp lệ, không impute biến mục tiêu, giữ Price > 0.
     df[TARGET] = pd.to_numeric(df[TARGET], errors="coerce")
     df = df.loc[df[TARGET].notna() & (df[TARGET] > 0)].copy()
 
@@ -103,7 +104,7 @@ def main():
     X = df[feature_columns].copy()
     y = df[TARGET].astype(float).copy()
 
-    # Chia test rieng ngay tu dau; validation chi dung de chon mo hinh.
+# Chia test rieng ngay tu dau; validation chi dung de chon mo hinh.
     X_train_full, X_test, y_train_full, y_test = train_test_split(
         X, y, test_size=0.2, random_state=RANDOM_STATE
     )
@@ -129,7 +130,7 @@ def main():
         ),
     }
 
-    # Chon mo hinh bang validation MAE, khong chon theo tap test.
+# Chon mo hinh bang validation MAE, khong chon theo tap test.
     validation_rows = []
     for name, estimator in models.items():
         print(f"Validation {name} ...")
@@ -140,8 +141,8 @@ def main():
     validation_metrics = pd.DataFrame(validation_rows).sort_values("MAE_AUD").reset_index(drop=True)
     best_name = str(validation_metrics.iloc[0]["Model"])
 
-    # Refitting chi mo hinh da chon tren toan bo tap train.
-    # Tap test chi dung de danh gia cuoi cung, khong dung chon mo hinh.
+# Refitting chi mo hinh da chon tren toan bo tap train.
+# Tap test chi dung de danh gia cuoi cung, khong dung chon mo hinh.
     best_model = models[best_name]
     print(f"Final fit and test evaluation: {best_name} ...")
     best_model.fit(X_train_full, y_train_full)
@@ -193,7 +194,7 @@ def main():
     with (MODEL_DIR / "model_metadata.json").open("w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
 
-    # Actual vs predicted chart.
+# Actual vs predicted chart.
     fig, ax = plt.subplots(figsize=(7, 6))
     ax.scatter(y_test, best_predictions, alpha=0.35, s=18)
     lower = min(float(y_test.min()), float(np.min(best_predictions)))
@@ -206,7 +207,7 @@ def main():
     fig.savefig(OUTPUT_DIR / "06_actual_vs_predicted.png", dpi=160)
     plt.close(fig)
 
-    # Residual distribution.
+# Residual distribution chart 
     residuals = y_test.to_numpy() - best_predictions
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.hist(residuals, bins=40, edgecolor="white")
@@ -240,3 +241,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+  
