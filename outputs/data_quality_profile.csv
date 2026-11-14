@@ -1,4 +1,4 @@
-﻿,dtype,missing_count,missing_pct,n_unique
+﻿,Kiểu data,số lượng missing,% missing,giá trị unique
 BuildingArea,float64,6450,47.5,602
 YearBuilt,float64,5375,39.58,144
 CouncilArea,str,1369,10.08,33

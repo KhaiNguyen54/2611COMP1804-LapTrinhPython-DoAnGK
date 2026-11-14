@@ -1,7 +1,6 @@
 from pathlib import Path
 import json
 import warnings
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,13 +12,12 @@ PROJECT_DIR = Path(__file__).resolve().parent
 DATA_PATH = PROJECT_DIR / "data" / "melb_data.csv"
 OUTPUT_DIR = PROJECT_DIR / "outputs"
 
-# Plausibility limits for residential sales; values above them are treated as outliers.
-MAX_LANDSIZE = 10_000       # m2 (1 ha): larger values are data errors or whole-complex lots
-MAX_BUILDING_AREA = 1_000   # m2: larger values are data entry errors for a single dwelling
-
+# Constants 
+MAX_LANDSIZE = 10_000       # m2 
+MAX_BUILDING_AREA = 1_000   # m2: 
 sns.set_theme(style="whitegrid")
 
-
+# Hàm kiểm tra đường dẫn data
 def load_data(path: Path = DATA_PATH) -> pd.DataFrame:
     """Load the raw CSV. A fresh DataFrame is returned for each run."""
     if not path.exists():
@@ -29,26 +27,27 @@ def load_data(path: Path = DATA_PATH) -> pd.DataFrame:
         )
     return pd.read_csv(path)
 
-
+# Hàm kiểm tra data
 def audit_data(df: pd.DataFrame) -> dict:
     """Create structured quality reports without modifying the input data."""
     profile = pd.DataFrame({
-        "dtype": df.dtypes.astype(str),
-        "missing_count": df.isna().sum(),
-        "missing_pct": (df.isna().mean() * 100).round(2),
-        "n_unique": df.nunique(dropna=True),
-    }).sort_values("missing_pct", ascending=False)
+        "Kiểu data": df.dtypes.astype(str),
+        "số lượng missing": df.isna().sum(),
+        "% missing": (df.isna().mean() * 100).round(2),
+        "giá trị unique": df.nunique(dropna=True),
+    }).sort_values("% missing", ascending=False)
 
+# Đảm bảo các cột số liệu được kiểm tra 
     numeric_cols = df.select_dtypes(include=np.number).columns
     invalid = {}
     if "Price" in df.columns:
-        invalid["Price <= 0"] = int((df["Price"] <= 0).sum())
+        invalid["Price ≤ 0"] = int((df["Price"] <= 0).sum())
     if "Rooms" in df.columns:
-        invalid["Rooms <= 0"] = int((df["Rooms"] <= 0).sum())
+        invalid["Rooms ≤ 0"] = int((df["Rooms"] <= 0).sum())
     if "Distance" in df.columns:
         invalid["Distance < 0"] = int((df["Distance"] < 0).sum())
     if "BuildingArea" in df.columns:
-        invalid["BuildingArea <= 0"] = int((df["BuildingArea"] <= 0).sum())
+        invalid["BuildingArea ≤ 0"] = int((df["BuildingArea"] <= 0).sum())
     if "YearBuilt" in df.columns:
         invalid["YearBuilt < 1700"] = int((df["YearBuilt"] < 1700).sum())
     if "Landsize" in df.columns:
@@ -66,16 +65,16 @@ def audit_data(df: pd.DataFrame) -> dict:
         "numeric_summary": df.select_dtypes(include=np.number).describe().T,
     }
 
-
+# Hàm làm sạch data 
 def clean_data(df_raw: pd.DataFrame) -> pd.DataFrame:
-    """Conservative cleaning: fix types and clearly invalid values; preserve valid rows."""
     df = df_raw.copy()
     df = df.drop_duplicates().copy()
 
+# Xử lý cột ngày tháng
     if "Date" in df.columns:
-        # Dataset dates are in day/month/year format.
         df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors="coerce")
 
+# Đảm bảo các cột số là kiểu số, chuyển đổi các giá trị không hợp lệ thành NaN
     numeric_cols = [
         "Rooms", "Price", "Distance", "Postcode", "Bedroom2", "Bathroom",
         "Car", "Landsize", "BuildingArea", "YearBuilt", "Lattitude",
@@ -85,12 +84,12 @@ def clean_data(df_raw: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Keep original missingness visible with flags before any invalid values are nulled.
+    # Giữ nguyên thông tin về các giá trị bị thiếu trước khi loại bỏ các giá trị không hợp lý
     for col in ["Car", "BuildingArea", "YearBuilt", "CouncilArea"]:
         if col in df.columns:
             df[f"{col}_was_missing"] = df[col].isna().astype("int8")
 
-    # Set impossible values to missing; avoid deleting entire rows unnecessarily.
+    # Loại bỏ các giá trị không hợp lý theo quy tắc đã xác định
     if "Price" in df.columns:
         df.loc[df["Price"] <= 0, "Price"] = np.nan
     if "Rooms" in df.columns:
@@ -103,9 +102,6 @@ def clean_data(df_raw: pd.DataFrame) -> pd.DataFrame:
         df.loc[df["BuildingArea"] <= 0, "BuildingArea"] = np.nan
     if "YearBuilt" in df.columns:
         df.loc[df["YearBuilt"] < 1700, "YearBuilt"] = np.nan
-    # Outliers: implausible area values and dwellings with no bathroom. The transaction
-    # (and its price) is kept; only the doubtful value is set to missing.
-    # Landsize == 0 is kept: it means "no private land" (mostly units), not an error.
     if "Landsize" in df.columns:
         df.loc[df["Landsize"] > MAX_LANDSIZE, "Landsize"] = np.nan
     if "BuildingArea" in df.columns:
@@ -117,24 +113,24 @@ def clean_data(df_raw: pd.DataFrame) -> pd.DataFrame:
     if "Longtitude" in df.columns:
         df.loc[~df["Longtitude"].between(142.0, 147.0), "Longtitude"] = np.nan
 
-    # Price is the core variable for price-related analysis, so rows without a valid target are excluded.
+    # Giữ Price vì đây là biến mục tiêu
     if "Price" in df.columns:
         df = df.dropna(subset=["Price"])
 
-    # Missing categorical area is explicitly labeled, not silently removed.
+    # Điền giá trị Unknown cho cột CouncilArea nếu bị thiếu
     if "CouncilArea" in df.columns:
         df["CouncilArea"] = df["CouncilArea"].fillna("Unknown")
 
-    # Useful date-derived features for later analysis.
+    # Tách cột ngày tháng thành các cột riêng biệt cho năm và tháng
+    # Lí do tách: để phân tích xu hướng giá theo thời gian xác định
     if "Date" in df.columns:
         df["SaleYear"] = df["Date"].dt.year
         df["SaleMonth"] = df["Date"].dt.month
 
     return df.reset_index(drop=True)
 
-
+# Hàm phân tích dữ liệu (Thống kê mô tả, groupby nhóm và tương quan)
 def analyze_data(df: pd.DataFrame) -> dict:
-    """Generate tables for the assignment's main descriptive analyses."""
     analyses = {
         "price_summary": df["Price"].describe().to_frame("Price"),
         "price_by_type": df.groupby("Type", dropna=False)["Price"].agg(
@@ -156,12 +152,12 @@ def analyze_data(df: pd.DataFrame) -> dict:
     }
     return analyses
 
-
+# Hàm tạo biểu đồ trực quan hóa dữ liệu
 def create_charts(df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> list[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     saved = []
 
-    # 1. Histogram: raw sale-price distribution.
+    # 1. Histogram: phân phối giá bán nhà.
     fig, ax = plt.subplots(figsize=(9, 5))
     sns.histplot(df["Price"].dropna(), bins=45, kde=True, color=sns.color_palette()[0], ax=ax)
     ax.set(title="Phân phối giá bán nhà tại Melbourne", xlabel="Giá bán (AUD)", ylabel="Số bất động sản")
@@ -171,7 +167,7 @@ def create_charts(df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> list[Path]
     plt.close(fig)
     saved.append(path)
 
-    # 2. Box plot: compare property types.
+    # 2. Boxplot: giá bán theo loại bất động sản (Type).
     fig, ax = plt.subplots(figsize=(8, 5))
     order = df.groupby("Type")["Price"].median().sort_values(ascending=False).index
     sns.boxplot(data=df, x="Type", y="Price", order=order, showfliers=False, color=sns.color_palette()[0], ax=ax)
@@ -182,7 +178,7 @@ def create_charts(df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> list[Path]
     plt.close(fig)
     saved.append(path)
 
-    # 3. Bar chart: median price by region.
+    # 3. Bar chart: trung vị giá bán theo khu vực (Regionname).
     region_median = df.groupby("Regionname")["Price"].median().sort_values(ascending=False)
     fig, ax = plt.subplots(figsize=(11, 6))
     sns.barplot(x=region_median.values, y=region_median.index, color=sns.color_palette()[0], ax=ax)
@@ -193,7 +189,7 @@ def create_charts(df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> list[Path]
     plt.close(fig)
     saved.append(path)
 
-    # 4. Scatter plot: distance from CBD vs sale price (sample for readability).
+    # 4. Scatter plot: khoảng cách đến CBD và giá bán. 
     scatter_df = df[["Distance", "Price"]].dropna()
     if len(scatter_df) > 4000:
         scatter_df = scatter_df.sample(4000, random_state=42)
@@ -206,7 +202,7 @@ def create_charts(df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> list[Path]
     plt.close(fig)
     saved.append(path)
 
-    # 5. Correlation heatmap.
+    # 5. Correlation heatmap: Tương quan giữa các biến số
     corr_cols = [c for c in ["Price", "Rooms", "Bedroom2", "Bathroom", "Car", "Distance", "Landsize", "BuildingArea", "YearBuilt", "Propertycount"] if c in df.columns]
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(df[corr_cols].corr(numeric_only=True), annot=True, fmt=".2f", cmap="coolwarm", center=0, ax=ax)
@@ -219,7 +215,7 @@ def create_charts(df: pd.DataFrame, output_dir: Path = OUTPUT_DIR) -> list[Path]
 
     return saved
 
-
+# Hàm xây dựng các phát hiện từ dữ liệu
 def build_findings(df: pd.DataFrame) -> list[str]:
     findings = []
     median_by_type = df.groupby("Type")["Price"].median().dropna().sort_values(ascending=False)

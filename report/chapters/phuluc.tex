@@ -51,7 +51,6 @@ def clean_data(df_raw):
     df["SaleMonth"] = df["Date"].dt.month
     return df.reset_index(drop=True)
 \end{lstlisting}
-Số ở cuối mỗi dòng chú thích khớp với cột \# của Bảng~\ref{tab:quytac-day-du}.
 
 \section*{A.2. Số ô thiếu trước và sau làm sạch}
 Làm sạch chuyển một số giá trị không hợp lệ thành thiếu nên số ô thiếu thay đổi như Bảng~\ref{tab:thieu-truoc-sau}.
@@ -85,7 +84,7 @@ Cột & Trước & Sau & Thay đổi \\
 
 \chapter{Ánh xạ tiêu chí nghiệm thu với vị trí trong báo cáo}\label{pl:anhxa}
 
-Bảng~\ref{tab:anhxa} đối chiếu từng tiêu chí đạt ở mục 1 đến 4 của tài liệu quy tắc và tiêu chí nghiệm thu của đồ án (\texttt{docs/01\_QuyTac\_YeuCau.md}) với nơi tiêu chí được đáp ứng trong báo cáo và kho mã, để kiểm tra trước khi nộp. Cột trạng thái nêu thẳng các điểm chưa đạt.
+Bảng~\ref{tab:anhxa} thống kê trạng thái các mục tiêu
 
 \begin{longtable}{@{}L{0.9cm} L{5.0cm} L{3.8cm} L{4.2cm}@{}}
 \caption{Đối chiếu tiêu chí nghiệm thu với vị trí trong báo cáo}\label{tab:anhxa}\\
@@ -98,7 +97,7 @@ Mục & Tiêu chí đạt (rút gọn) & Vị trí & Trạng thái \\
 \midrule
 \endhead
 \midrule
-\multicolumn{4}{r}{\emph{Còn tiếp ở trang sau}}\\
+\multicolumn{4}{r}{}\\
 \endfoot
 \bottomrule
 \endlastfoot
@@ -111,7 +110,7 @@ Mục & Tiêu chí đạt (rút gọn) & Vị trí & Trạng thái \\
 2.1 & Kiểm tra kiểu dữ liệu, dữ liệu thiếu, trùng lặp, giá trị lỗi, kèm số liệu & Mục~\ref{sec:kiemtra} (Bảng~\ref{tab:kiemtra}, \ref{tab:loi}) & Đạt \\
 2.2 & Mỗi quy tắc làm sạch ghi số dòng bị ảnh hưởng; không xóa dòng khi chưa nêu lý do & Mục~\ref{sec:quytac} (Bảng~\ref{tab:quytac}), Phụ lục~\ref{pl:quytac} & Đạt (0 dòng bị xóa) \\
 2.3 & Dùng \texttt{groupby}, lọc, sắp xếp hoặc tổng hợp & Mục~\ref{sec:groupby}, Phép 5 (lọc suburb từ 30 giao dịch rồi sắp xếp) & Đạt \\
-2.4 & Tiền xử lý dùng chung giữa huấn luyện và giao diện, một nguồn \texttt{features.py} & Mục~\ref{sec:dungchung} & Không áp dụng cho đồ án giữa kỳ (giao diện thuộc đồ án riêng). Hiện làm sạch nằm ở \texttt{pipeline.py}, tiền xử lý mô hình nằm trong \texttt{Pipeline} của \texttt{train\_model.py} \\
+2.4 & Tiền xử lý dùng chung huấn luyện & Mục~\ref{sec:dungchung} & Hiện làm sạch nằm ở \texttt{pipeline.py}, tiền xử lý mô hình nằm trong \texttt{Pipeline} của \texttt{train\_model.py} \\
 2.5 & Thống kê điền, chuẩn hóa, mã hóa chỉ học từ tập train & Mục~\ref{sec:thieu}, mục~\ref{sec:chia} & Đạt (nằm trong \texttt{Pipeline}) \\
 \midrule
 \multicolumn{4}{@{}l}{\textbf{Mục 3. Phân tích và trực quan hóa}} \\
@@ -119,7 +118,7 @@ Mục & Tiêu chí đạt (rút gọn) & Vị trí & Trạng thái \\
 3.2 & Ít nhất 4 biểu đồ thuộc ít nhất 3 dạng & Mục~\ref{sec:bieudo} (5 biểu đồ, 5 dạng; thêm 2 biểu đồ mô hình) & Đạt \\
 3.3 & Ít nhất 3 nhận xét có ý nghĩa, mỗi nhận xét dẫn số liệu & Mục~\ref{sec:nhanxet} (9 nhận xét) & Đạt \\
 3.4 & Biểu đồ có tiêu đề, nhãn trục, đơn vị & Mục~\ref{sec:nguyentac}, \ref{sec:bieudo} & Đạt; ở heatmap hai trục là tên thuộc tính nên không có đơn vị \\
-3.5 & Phần phân tích hiển thị được trong ứng dụng & --- & Không áp dụng cho đồ án giữa kỳ; phần phân tích được trình bày trong báo cáo và notebook \\
+3.5 & Phần phân tích hiển thị được trong ứng dụng & --- & Phân tích được trình bày trong báo cáo và notebook \\
 3.6 & Notebook theo luồng Dataset $\to$ Data Cleaning $\to$ Analysis $\to$ Visualization $\to$ Conclusions & Notebook \texttt{melbourne\_\allowbreak data\_\allowbreak analysis\_\allowbreak pipeline.ipynb}; báo cáo theo cùng thứ tự: Chương~\ref{ch:nguon} đến~\ref{ch:ketluan} & Đạt \\
 \midrule
 \multicolumn{4}{@{}l}{\textbf{Mục 4. Mô hình Machine Learning}} \\
@@ -127,11 +126,7 @@ Mục & Tiêu chí đạt (rút gọn) & Vị trí & Trạng thái \\
 4.2 & Có baseline; chọn mô hình dựa trên validation; test chỉ chấm một lần cho mô hình đã chọn & Mục~\ref{sec:cacmohinh}, \ref{sec:chonmohinh}, \ref{sec:ketquatest} & Đạt \\
 4.3 & Báo cáo sai số bằng đơn vị gốc (MAE, MAPE, RMSE, $R^2$) và phân khúc mô hình yếu & Mục~\ref{sec:ketquatest}, \ref{sec:phankhuc} & Đạt; MAPE và sai số theo phân khúc tính từ \texttt{test\_predictions.csv}, không do \texttt{train\_model.py} ghi \\
 4.4 & Có \texttt{train\_model.py} huấn luyện lại tại máy, không phụ thuộc tệp nhị phân & Mục~\ref{sec:luuy}, Phụ lục~\ref{pl:taile} & Đạt \\
-4.5 & Nhật ký các bước và quyết định trong \texttt{ml\_pipeline/\allowbreak PIPELINE.md} & --- & Chưa có; các bước được mô tả trong \texttt{README.md} mục 8 \\
 \end{longtable}
-
-Các mục 5 đến 7 của tài liệu tiêu chí (giao diện Streamlit, cơ sở dữ liệu MySQL, tài khoản và phân quyền, tích hợp) thuộc đồ án riêng, không thuộc phạm vi đồ án giữa kỳ nên không được đối chiếu ở đây. Trước khi nộp bài, cần kiểm tra thông tin bìa (trường, khoa, họ tên, mã số sinh viên, giảng viên hướng dẫn) trong \texttt{main.tex}.
-
 
 \chapter{Hướng dẫn tái lập kết quả}\label{pl:taile}
 
@@ -182,12 +177,3 @@ t.groupby(band, observed=True).agg(
     mape=("ape", "mean"), bias=("Residual", "mean"))
 \end{lstlisting}
 
-\section*{C.5. Biên dịch báo cáo}
-Cần bản TeX có \texttt{xelatex} cùng gói \texttt{polyglossia} (tiếng Việt) và phông TeX Gyre (Termes, Heros, Cursor); trên Overleaf chọn trình biên dịch XeLaTeX. Hình được sinh lại từ dữ liệu thật bằng \texttt{make\_figures.py} (cần đã chạy \texttt{pipeline.py} và \texttt{train\_model.py} để có hình mô hình), sau đó biên dịch hai lần để mục lục, danh mục hình và danh mục bảng cập nhật đúng (thỉnh thoảng cần lần thứ ba):
-\begin{lstlisting}[language=bash]
-cd report
-python make_figures.py
-xelatex main.tex
-xelatex main.tex
-\end{lstlisting}
-Thông tin bìa sửa ở đầu \texttt{main.tex}.
