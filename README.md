@@ -110,8 +110,9 @@ Báo cáo nằm ở `report/` và dùng đúng các số liệu trong `outputs/`
 ```powershell
 cd report
 python make_figures.py
+python so_lieu_bo_sung.py   # tính các số bổ sung -> so_lieu_bo_sung.csv
 xelatex main.tex
 xelatex main.tex
 ```
 
-Cần chạy `pipeline.py` và `train_model.py` trước để có `outputs/` đầy đủ.
+Cần chạy `pipeline.py` và `train_model.py` trước để có `outputs/` đầy đủ. Mỗi bảng, hình, số trong báo cáo có dòng "Nguồn" (tệp trong `outputs/` hoặc mã trong `report/so_lieu_bo_sung.csv`); `report/doi_chung/` là kết quả mô hình trước khi loại ngoại lai. Bảng đối chiếu ở Phụ lục B của báo cáo.

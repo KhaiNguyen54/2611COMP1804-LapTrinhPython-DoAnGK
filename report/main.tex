@@ -86,6 +86,11 @@
   \caption{#2}\label{#3}\end{figure}}
 
 % ---------- thông tin bìa  ----------
+% Ghi nguon so lieu duoi bang/hinh/doan van
+\newcommand{\nguon}[1]{\par\smallskip\noindent{\footnotesize\raggedright\emph{Nguồn:} #1\par}}
+\emergencystretch=3em
+\DeclareRobustCommand{\_}{\textunderscore\allowbreak{}}
+\newcommand{\bs}[1]{\texttt{so\_lieu\_bo\_sung.csv} (mã #1)}
 \newcommand{\TenTruong}{{Trường Đại học Sư Phạm TPHCM}}
 \newcommand{\TenKhoa}{{Khoa Công nghệ Thông tin}}
 \newcommand{\HoTen}{{Nguyễn Tuấn Khải}}

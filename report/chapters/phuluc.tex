@@ -1,7 +1,7 @@
 \chapter{Bảng đầy đủ quy tắc làm sạch}\label{pl:quytac}
 
 \section*{A.1. Các quy tắc và đoạn mã tương ứng}
-Mã nguồn dưới đây là hàm \texttt{clean\_data()} trong \texttt{pipeline.py}, rút gọn (bỏ các kiểm tra \texttt{if col in df.columns}). Các quy tắc không dùng thống kê của tập dữ liệu nào.
+Đoạn mã là hàm \texttt{clean\_data()} trong \texttt{pipeline.py}, rút gọn bằng cách bỏ các kiểm tra \texttt{if col in df.columns} và các chú thích; các ngưỡng \texttt{MAX\_LANDSIZE}, \texttt{MAX\_BUILDING\_AREA} là hằng ở đầu tệp. Các quy tắc không dùng thống kê của tập dữ liệu nào. Số dòng trong bảng lấy từ \bs{L01, L02, L03}.
 
 \begin{table}[H]
 \centering
@@ -22,19 +22,20 @@ Mã nguồn dưới đây là hàm \texttt{clean\_data()} trong \texttt{pipeline
 8 & \texttt{Bathroom == 0} & Đặt thành thiếu & 34 \\
 9 & \texttt{Price <= 0}, \texttt{Rooms <= 0}, \texttt{Distance < 0}, \texttt{Landsize < 0}, tọa độ ngoài $[-39.5,-36.0]$ và $[142.0,147.0]$ & Đặt thành thiếu & 0 \\
 10 & \texttt{dropna(subset=["Price"])} & Loại dòng không có giá & 0 \\
-11 & \texttt{CouncilArea.fillna("Unknown")} & Điền ``Unknown'' & 1,369 \\
+11 & \texttt{CouncilArea.}\allowbreak\texttt{fillna("Unknown")} & Điền ``Unknown'' & 1,369 \\
 12 & \texttt{Date.dt.year}, \texttt{Date.dt.month} & Thêm \texttt{SaleYear}, \texttt{SaleMonth} & 13,580 \\
 \midrule
  & \multicolumn{2}{l}{Tổng số dòng bị xóa} & 0 \\
 \bottomrule
 \end{tabular}
+\nguon{\texttt{pipeline.py}, hàm \texttt{clean\_data()}; số dòng: \bs{L01, L02}.}
 \end{table}
 
 \begin{lstlisting}
 def clean_data(df_raw):
     df = df_raw.copy().drop_duplicates()                              # 1
     df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors="coerce")  # 2
-    for col in NUMERIC_COLS:
+    for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")             # 3
     for col in ["Car", "BuildingArea", "YearBuilt", "CouncilArea"]:
         df[col + "_was_missing"] = df[col].isna().astype("int8")      # 4
@@ -53,7 +54,7 @@ def clean_data(df_raw):
 \end{lstlisting}
 
 \section*{A.2. Số ô thiếu trước và sau làm sạch}
-Làm sạch chuyển một số giá trị không hợp lệ thành thiếu nên số ô thiếu thay đổi như Bảng~\ref{tab:thieu-truoc-sau}.
+Số ô thiếu thay đổi như Bảng~\ref{tab:thieu-truoc-sau}.
 
 \begin{table}[H]
 \centering
@@ -72,6 +73,7 @@ Cột & Trước & Sau & Thay đổi \\
 \texttt{Price}, \texttt{Rooms}, \texttt{Distance} & 0 & 0 & không đổi \\
 \bottomrule
 \end{tabular}
+\nguon{trước: \texttt{outputs/data\_quality\_profile.csv}; sau: \bs{L03}.}
 \end{table}
 
 \section*{A.3. Biến dẫn xuất và cột không dùng cho mô hình}
@@ -82,9 +84,58 @@ Cột & Trước & Sau & Thay đổi \\
 \end{itemize}
 
 
+\chapter{Nguồn số liệu và cách kiểm chứng}\label{pl:nguon}
+
+\section*{B.1. Ba loại nguồn}
+Mỗi bảng, hình và số trong báo cáo có dòng ``Nguồn'' ngay bên dưới, thuộc một trong ba loại:
+\begin{itemize}[nosep]
+  \item \textbf{Tệp do chương trình của dự án ghi}: \texttt{outputs/*.csv} và \texttt{outputs/*.png}, do \texttt{pipeline.py} và \texttt{train\_model.py} tạo ra khi chạy trên \texttt{data/melb\_data.csv}.
+  \item \textbf{Mã số liệu bổ sung} (N, L, P, M): các số không có sẵn trong \texttt{outputs/}, do \texttt{report/so\_lieu\_bo\_sung.py} tính và ghi vào \texttt{report/so\_lieu\_bo\_sung.csv} gồm bốn cột \texttt{ma}, \texttt{noi\_dung}, \texttt{gia\_tri}, \texttt{cach\_tinh}. Chữ cái đầu của mã cho biết nhóm: N (nguồn dữ liệu, Chương~\ref{ch:nguon}--\ref{ch:lamsach}), L (làm sạch), P (phân tích, Chương~\ref{ch:phantich}), M (mô hình, Chương~\ref{ch:mohinh}). Tập lệnh này chỉ đọc các tệp trên, không huấn luyện mô hình.
+  \item \textbf{Số đối chứng trước khi loại ngoại lai}: \texttt{report/doi\_chung/}, gồm hai tệp kết quả của \texttt{train\_model.py} chạy trên bản sao không áp dụng ba quy tắc ngoại lai; cách tạo ở \texttt{report/doi\_chung/README.md}.
+\end{itemize}
+
+\section*{B.2. Bảng đối chiếu}
+\begin{longtable}{@{}L{4.2cm} L{5.8cm} L{4.0cm}@{}}
+\caption{Nguồn của các bảng và hình chính}\label{tab:nguon-sl}\\
+\toprule
+Bảng / hình & Tệp hoặc hàm tạo ra số liệu & Mã bổ sung \\
+\midrule
+\endfirsthead
+\toprule
+Bảng / hình & Tệp hoặc hàm tạo ra số liệu & Mã bổ sung \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Quy mô, kiểu dữ liệu, giá trị khác nhau (Chương~\ref{ch:nguon}) & \texttt{data/melb\_data.csv}; \texttt{outputs/melb\_data\_clean.csv} & N01--N08, N12 \\
+Kiểm tra chất lượng (Bảng~\ref{tab:kiemtra}, \ref{tab:loi}) & \texttt{outputs/data\_quality\_profile.csv}; \texttt{audit\_data()} & N03, N07, N08, L01, L02 \\
+Hình~\ref{fig:missing}, \ref{fig:cleaning} & \texttt{report/make\_figures.py}: \texttt{f\_missing()}, \texttt{f\_cleaning()} & --- \\
+Quy tắc làm sạch (Bảng~\ref{tab:quytac}, \ref{tab:quytac-day-du}, \ref{tab:thieu-truoc-sau}) & \texttt{pipeline.py}: \texttt{clean\_data()} & L01, L02, L03 \\
+Chia tập (Bảng~\ref{tab:chia}) & \texttt{train\_model.py}: \texttt{train\_test\_split} & L06 \\
+Bảng~\ref{tab:mota-gia}, \ref{tab:mota-so} & \texttt{outputs/price\_summary.csv}; \texttt{outputs/melb\_data\_clean.csv} & L04, P01, P02 \\
+Bảng~\ref{tab:loainha}, \ref{tab:vung}, \ref{tab:sophong}, \ref{tab:suburb} & \texttt{outputs/price\_by\_type.csv}, \texttt{price\_by\_region.csv}, \texttt{price\_by\_rooms.csv}, \texttt{top\_suburbs.csv} & N09, N10, P03--P06 \\
+Bảng~\ref{tab:tuongquan}, \ref{tab:nhay}, \ref{tab:theoloai} & \texttt{outputs/price\_distance\_corr.csv} (một phần); còn lại tính từ \texttt{melb\_data\_clean.csv} và \texttt{data/melb\_data.csv} & P07 \\
+Bảng~\ref{tab:thang} & \texttt{outputs/price\_by\_sale\_month.csv} & N11, P08 \\
+Hình~\ref{fig:hist}--\ref{fig:corr} & \texttt{pipeline.py}: \texttt{create\_charts()}, ghi \texttt{outputs/01\_*.png}--\texttt{05\_*.png} & P09 \\
+Bảng~\ref{tab:validation}, \ref{tab:test} & \texttt{outputs/model\_validation\_metrics.csv}, \texttt{outputs/model\_metrics.csv} & M01 \\
+Hình~\ref{fig:actual}, \ref{fig:residual} & \texttt{train\_model.py}, ghi \texttt{outputs/06\_*.png}, \texttt{07\_*.png} & M02 \\
+Bảng~\ref{tab:saiso-gia}, \ref{tab:saiso-loai} & \texttt{outputs/test\_predictions.csv} & M03--M05 \\
+Số trước/sau loại ngoại lai về mô hình (mục~\ref{sec:luuy}) & \texttt{report/doi\_chung/*.csv} so với \texttt{outputs/model\_*metrics.csv} & --- \\
+\end{longtable}
+
+\section*{B.3. Kiểm chứng}
+\begin{lstlisting}[language=bash]
+python pipeline.py                  # tao outputs/ (phan tich, bieu do)
+python train_model.py               # tao outputs/model_*.csv, test_predictions.csv
+python report/so_lieu_bo_sung.py    # tao report/so_lieu_bo_sung.csv
+python report/make_figures.py       # tao lai cac hinh trong bao cao
+\end{lstlisting}
+Kết quả chạy lại có thể lệch rất nhỏ giữa các máy do phiên bản thư viện. Trong quá trình soạn báo cáo, Ridge trên validation cho MAE 231,137 ở một môi trường và 231,160 trong \texttt{outputs/}; Random Forest trùng khớp. Báo cáo dùng số trong \texttt{outputs/}.
+
+
 \chapter{Ánh xạ tiêu chí nghiệm thu với vị trí trong báo cáo}\label{pl:anhxa}
 
-Bảng~\ref{tab:anhxa} thống kê trạng thái các mục tiêu
+Bảng~\ref{tab:anhxa} đối chiếu từng mục tiêu chí nghiệm thu của đồ án giữa kỳ với vị trí trong báo cáo. Các mục không thuộc phạm vi đồ án giữa kỳ được ghi rõ.
 
 \begin{longtable}{@{}L{0.9cm} L{5.0cm} L{3.8cm} L{4.2cm}@{}}
 \caption{Đối chiếu tiêu chí nghiệm thu với vị trí trong báo cáo}\label{tab:anhxa}\\
@@ -110,7 +161,7 @@ Mục & Tiêu chí đạt (rút gọn) & Vị trí & Trạng thái \\
 2.1 & Kiểm tra kiểu dữ liệu, dữ liệu thiếu, trùng lặp, giá trị lỗi, kèm số liệu & Mục~\ref{sec:kiemtra} (Bảng~\ref{tab:kiemtra}, \ref{tab:loi}) & Đạt \\
 2.2 & Mỗi quy tắc làm sạch ghi số dòng bị ảnh hưởng; không xóa dòng khi chưa nêu lý do & Mục~\ref{sec:quytac} (Bảng~\ref{tab:quytac}), Phụ lục~\ref{pl:quytac} & Đạt (0 dòng bị xóa) \\
 2.3 & Dùng \texttt{groupby}, lọc, sắp xếp hoặc tổng hợp & Mục~\ref{sec:groupby}, Phép 5 (lọc suburb từ 30 giao dịch rồi sắp xếp) & Đạt \\
-2.4 & Tiền xử lý dùng chung huấn luyện & Mục~\ref{sec:dungchung} & Hiện làm sạch nằm ở \texttt{pipeline.py}, tiền xử lý mô hình nằm trong \texttt{Pipeline} của \texttt{train\_model.py} \\
+2.4 & Tiền xử lý dùng chung huấn luyện & Mục~\ref{sec:dungchung} & Một phần: làm sạch ở \texttt{pipeline.py}, tiền xử lý mô hình trong \texttt{Pipeline} của \texttt{train\_model.py}; hai bước chưa dùng chung một hàm \\
 2.5 & Thống kê điền, chuẩn hóa, mã hóa chỉ học từ tập train & Mục~\ref{sec:thieu}, mục~\ref{sec:chia} & Đạt (nằm trong \texttt{Pipeline}) \\
 \midrule
 \multicolumn{4}{@{}l}{\textbf{Mục 3. Phân tích và trực quan hóa}} \\
@@ -118,7 +169,7 @@ Mục & Tiêu chí đạt (rút gọn) & Vị trí & Trạng thái \\
 3.2 & Ít nhất 4 biểu đồ thuộc ít nhất 3 dạng & Mục~\ref{sec:bieudo} (5 biểu đồ, 5 dạng; thêm 2 biểu đồ mô hình) & Đạt \\
 3.3 & Ít nhất 3 nhận xét có ý nghĩa, mỗi nhận xét dẫn số liệu & Mục~\ref{sec:nhanxet} (9 nhận xét) & Đạt \\
 3.4 & Biểu đồ có tiêu đề, nhãn trục, đơn vị & Mục~\ref{sec:nguyentac}, \ref{sec:bieudo} & Đạt; ở heatmap hai trục là tên thuộc tính nên không có đơn vị \\
-3.5 & Phần phân tích hiển thị được trong ứng dụng & --- & Phân tích được trình bày trong báo cáo và notebook \\
+3.5 & Phần phân tích hiển thị được trong ứng dụng & --- & Không áp dụng cho đồ án giữa kỳ (ứng dụng thuộc đồ án riêng); phân tích được trình bày trong báo cáo và notebook \\
 3.6 & Notebook theo luồng Dataset $\to$ Data Cleaning $\to$ Analysis $\to$ Visualization $\to$ Conclusions & Notebook \texttt{melbourne\_\allowbreak data\_\allowbreak analysis\_\allowbreak pipeline.ipynb}; báo cáo theo cùng thứ tự: Chương~\ref{ch:nguon} đến~\ref{ch:ketluan} & Đạt \\
 \midrule
 \multicolumn{4}{@{}l}{\textbf{Mục 4. Mô hình Machine Learning}} \\
@@ -132,48 +183,21 @@ Mục & Tiêu chí đạt (rút gọn) & Vị trí & Trạng thái \\
 
 Các lệnh dưới đây chạy từ thư mục gốc của kho mã (repo) và ghi rõ khi cần chuyển thư mục. Dữ liệu thô nằm ở \texttt{data/melb\_data.csv}; không cần tải thêm gì.
 
-\section*{C.1. Cài đặt}
+\section*{D.1. Cài đặt}
 Cần Python 3 và các thư viện trong \texttt{requirements.txt} (đã gồm Jupyter):
 \begin{lstlisting}[language=bash]
 pip install -r requirements.txt
 \end{lstlisting}
 
-\section*{C.2. Chạy phân tích và huấn luyện mô hình}
+\section*{D.2. Chạy phân tích và huấn luyện mô hình}
 \begin{lstlisting}[language=bash]
 python pipeline.py       # lam sach, phan tich, 5 bieu do -> outputs/
 python train_model.py    # huan luyen, danh gia -> models/, outputs/
 \end{lstlisting}
-\texttt{train\_model.py} đọc \texttt{outputs/melb\_data\_clean.csv} nên phải chạy \texttt{pipeline.py} trước.
+\texttt{train\_model.py} đọc \texttt{outputs/melb\_data\_clean.csv} nên phải chạy \texttt{pipeline.py} trước. Cách tạo lại các số bổ sung và hình của báo cáo ở Phụ lục~\ref{pl:nguon}.
 
-\section*{C.3. Chạy notebook}
+\section*{D.3. Chạy notebook}
 Mở \texttt{melbourne\_\allowbreak data\_\allowbreak analysis\_\allowbreak pipeline.ipynb} trong Jupyter hoặc VS Code từ thư mục gốc của kho mã, vì notebook đọc dữ liệu bằng đường dẫn tương đối \texttt{data/melb\_data.csv}, rồi chọn \emph{Run All}.
 \begin{lstlisting}[language=bash]
 jupyter notebook melbourne_data_analysis_pipeline.ipynb
 \end{lstlisting}
-
-\section*{C.4. Tính các số liệu bổ sung của báo cáo}
-Các số ở Bảng~\ref{tab:nhay}, mục~\ref{sec:ketquatest} và Bảng~\ref{tab:saiso-gia}, \ref{tab:saiso-loai} không do \texttt{pipeline.py} hay \texttt{train\_model.py} ghi sẵn; chúng được tính bằng đoạn mã sau từ các tệp trong \texttt{outputs/}.
-\begin{lstlisting}
-import pandas as pd
-raw = pd.read_csv("data/melb_data.csv")                      # truoc khi loai ngoai lai
-old = raw.assign(BuildingArea=raw["BuildingArea"].where(raw["BuildingArea"] > 0))
-old["Price"].corr(old["BuildingArea"])                       # 0.092
-old["Price"].corr(old["Landsize"])                           # 0.038
-df = pd.read_csv("outputs/melb_data_clean.csv")              # sau khi loai ngoai lai
-df["Price"].corr(df["BuildingArea"])                         # 0.556
-df["Price"].corr(df["Landsize"])                             # 0.132
-df["Price"].corr(df["BuildingArea"], method="spearman")      # 0.637
-df["Price"].corr(df["Landsize"], method="spearman")          # 0.329
-for t, g in df.groupby("Type"):
-    print(t, g["Price"].corr(g["Distance"]))                 # h -0.329
-
-t = pd.read_csv("outputs/test_predictions.csv")
-t["ape"] = t["Residual"].abs() / t["ActualPrice"]
-t["ape"].mean(), t["ape"].median()                           # MAPE, median APE
-(t["ape"] <= 0.1).mean(), (t["ape"] <= 0.2).mean()
-band = pd.cut(t["ActualPrice"], [0, 6e5, 1e6, 1.5e6, 1e8], right=False)
-t.groupby(band, observed=True).agg(
-    n=("ape", "size"), mae=("Residual", lambda r: r.abs().mean()),
-    mape=("ape", "mean"), bias=("Residual", "mean"))
-\end{lstlisting}
-

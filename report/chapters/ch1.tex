@@ -1,50 +1,51 @@
 \chapter{Giới thiệu}
 
 \section{Bối cảnh và mục tiêu}
-Đề tài được chọn của môn Lập trình Python là \emph{Ứng dụng dự đoán giá bằng Machine Learning}: từ các thuộc tính của một bất động sản, dự đoán mức giá của nó. Dự án này chọn bài toán dự đoán giá nhà ở Melbourne (Úc) trên một bộ dữ liệu giao dịch thật gồm 13,580 căn nhà đã bán trong giai đoạn từ 28/01/2016 đến 23/09/2017.
-
-Một mô hình dự đoán chỉ đáng tin khi người xây dựng hiểu rõ dữ liệu đầu vào: dữ liệu đến từ đâu, thiếu và sai ở chỗ nào, yếu tố nào thật sự gắn với giá. Báo cáo trình bày hai phần việc nối tiếp nhau: \emph{phân tích dữ liệu} (nguồn, kiểm tra, làm sạch, thống kê, trực quan hóa) rồi \emph{mô hình hồi quy} dự đoán giá, với kết quả đánh giá trung thực trên tập test.
+Đề tài của môn Lập trình Python là \emph{Ứng dụng dự đoán giá bằng Machine Learning}. Báo cáo giữa kỳ thực hiện hai phần đầu của đề tài trên dữ liệu giao dịch nhà ở Melbourne (Úc): \emph{phân tích dữ liệu} (nguồn, kiểm tra, làm sạch, thống kê, trực quan hóa) và \emph{mô hình hồi quy} dự đoán giá bằng scikit-learn. Dữ liệu gồm 13,580 căn nhà bán từ 28/01/2016 đến 23/09/2017 (\bs{N01, N02}). Giao diện người dùng, cơ sở dữ liệu và phân quyền thuộc đồ án riêng, không nằm trong báo cáo này.
 
 Các mục tiêu cụ thể:
 \begin{enumerate}[nosep]
-  \item Mô tả rõ nguồn gốc, quy mô và ý nghĩa từng cột của dữ liệu (Chương~\ref{ch:nguon}).
-  \item Kiểm tra chất lượng dữ liệu bằng số liệu cụ thể và làm sạch bằng các quy tắc có lý do, có số dòng bị ảnh hưởng (Chương~\ref{ch:lamsach}).
-  \item Thực hiện bảy phép phân tích thống kê, mỗi phép có mục đích, phương pháp, kết quả và diễn giải (Chương~\ref{ch:phantich}).
-  \item Trình bày năm biểu đồ phân tích thuộc năm dạng khác nhau, có tiêu đề, nhãn trục và đơn vị (Chương~\ref{ch:trucquan}).
-  \item Huấn luyện, chọn và đánh giá mô hình hồi quy so với một mô hình cơ sở (baseline), báo cáo sai số bằng đơn vị gốc (Chương~\ref{ch:mohinh}).
-  \item Rút ra các nhận xét có số liệu, nêu hạn chế và hướng cải thiện (Chương~\ref{ch:ketluan}).
+  \item Mô tả nguồn gốc, quy mô và ý nghĩa các cột của dữ liệu (Chương~\ref{ch:nguon}).
+  \item Kiểm tra chất lượng dữ liệu và làm sạch bằng các quy tắc có lý do, có số dòng bị ảnh hưởng (Chương~\ref{ch:lamsach}).
+  \item Thực hiện bảy phép phân tích thống kê gồm mục đích, phương pháp, kết quả và diễn giải (Chương~\ref{ch:phantich}).
+  \item Trình bày năm biểu đồ thuộc năm dạng khác nhau (Chương~\ref{ch:trucquan}).
+  \item Huấn luyện, chọn và đánh giá mô hình hồi quy so với một mô hình cơ sở (baseline) (Chương~\ref{ch:mohinh}).
+  \item Rút ra nhận xét có số liệu, nêu hạn chế và hướng cải thiện (Chương~\ref{ch:ketluan}).
 \end{enumerate}
 
-\section{Phạm vi và câu hỏi đặt ra}
-\paragraph{Phạm vi.} Báo cáo chỉ dùng một tệp dữ liệu, \texttt{data/melb\_data.csv}, và chỉ dùng thông tin có trong tệp đó. Mã nguồn của dự án gồm ba phần: \texttt{pipeline.py} (kiểm tra, làm sạch, phân tích, vẽ biểu đồ), \texttt{train\_model.py} (huấn luyện và đánh giá mô hình) và notebook \texttt{melbourne\_\allowbreak data\_\allowbreak analysis\_\allowbreak pipeline.ipynb} (trình bày từng bước). Đồ án tập trung vào phân tích dữ liệu và xây dựng mô hình bằng scikit-learn. Các kết luận chỉ áp dụng cho Melbourne trong giai đoạn 2016--2017.
+\section{Phạm vi và câu hỏi nghiên cứu}
+\paragraph{Phạm vi.} Báo cáo chỉ dùng tệp \texttt{data/melb\_data.csv}. Mã nguồn gồm \texttt{pipeline.py} (kiểm tra, làm sạch, phân tích, biểu đồ), \texttt{train\_model.py} (huấn luyện và đánh giá mô hình) và notebook \texttt{melbourne\_\allowbreak data\_\allowbreak analysis\_\allowbreak pipeline.ipynb} (trình bày từng bước). Kết luận chỉ áp dụng cho Melbourne giai đoạn 2016--2017.
 
-\paragraph{Câu hỏi.} Báo cáo xoay quanh sáu câu hỏi:
+\paragraph{Nguồn số liệu.} Mọi số liệu trong báo cáo thuộc một trong ba loại. Loại thứ nhất là các tệp do \texttt{pipeline.py} và \texttt{train\_model.py} ghi vào \texttt{outputs/}. Loại thứ hai là các số tính thêm từ dữ liệu bằng \texttt{report/so\_lieu\_bo\_sung.py}, ghi trong \texttt{report/so\_lieu\_bo\_sung.csv} cùng biểu thức tính. Loại thứ ba là các kết quả đối chứng trong \texttt{report/doi\_chung/}. Dưới mỗi bảng và hình có dòng \emph{Nguồn} chỉ rõ tệp hoặc mã số liệu; Phụ lục~\ref{pl:nguon} tổng hợp cách tái lập.
+
+\paragraph{Câu hỏi nghiên cứu.}
 \begin{description}[leftmargin=2.2em,style=sameline,nosep]
-  \item[Q1] Giá nhà phân phối như thế nào, có lệch hay có ngoại lai đáng kể không? (Phép 1, mục~\ref{sec:p1})
+  \item[Q1] Giá nhà phân phối thế nào, có lệch hoặc có ngoại lai đáng kể không? (Phép 1)
   \item[Q2] Giá khác nhau ra sao giữa các loại nhà, vùng và suburb? (Phép 2, 3, 5)
-  \item[Q3] Số phòng và khoảng cách đến trung tâm ảnh hưởng đến giá như thế nào? (Phép 4, 6)
-  \item[Q4] Những thuộc tính số nào tương quan mạnh nhất với giá, và dữ liệu thiếu hay ngoại lai làm sai lệch điều đó ra sao? (Phép 6, mục~\ref{sec:p6})
-  \item[Q5] Mô hình hồi quy dự đoán giá tốt đến đâu so với baseline, và yếu ở phân khúc nào? (Chương~\ref{ch:mohinh})
+  \item[Q3] Số phòng và khoảng cách đến trung tâm ảnh hưởng đến giá thế nào? (Phép 4, 6)
+  \item[Q4] Thuộc tính số nào tương quan mạnh nhất với giá, và ngoại lai làm sai lệch điều đó ra sao? (Phép 6)
+  \item[Q5] Mô hình dự đoán tốt đến đâu so với baseline và yếu ở phân khúc nào? (Chương~\ref{ch:mohinh})
   \item[Q6] Dữ liệu và cách làm có những hạn chế nào? (mục~\ref{sec:hanche})
 \end{description}
 
 \section{Công cụ và thư viện}
-Toàn bộ xử lý dữ liệu và vẽ biểu đồ viết bằng Python. Bảng~\ref{tab:thuvien} liệt kê các thư viện chính, lấy từ \texttt{requirements.txt}.
+Toàn bộ xử lý viết bằng Python; các thư viện chính lấy từ \texttt{requirements.txt} (Bảng~\ref{tab:thuvien}).
 
 \begin{table}[H]
 \centering
-\caption{Các thư viện chính và vai trò trong dự án}\label{tab:thuvien}
+\caption{Thư viện chính và vai trò trong dự án}\label{tab:thuvien}
 \small
 \begin{tabular}{@{}l L{6.2cm} L{4.6cm}@{}}
 \toprule
 Thư viện & Vai trò & Nơi dùng \\
 \midrule
 NumPy & Tính toán số, biến đổi \texttt{log1p} và ngược lại cho giá & \texttt{pipeline.py}, \texttt{train\_model.py} \\
-Pandas & Đọc CSV, kiểm tra kiểu và dữ liệu thiếu, \texttt{groupby}, \texttt{query}, sắp xếp, tương quan & \texttt{pipeline.py}, notebook \\
-scikit-learn & Bộ tiền xử lý và mô hình (\texttt{Pipeline}, \texttt{ColumnTransformer}, \texttt{SimpleImputer}, \texttt{StandardScaler}, \texttt{OneHotEncoder}, \texttt{Ridge}, \texttt{RandomForestRegressor}, \texttt{DummyRegressor}), chia tập, các độ đo & \texttt{train\_model.py} \\
+Pandas & Đọc CSV, kiểm tra dữ liệu thiếu, \texttt{groupby}, \texttt{query}, tương quan & \texttt{pipeline.py}, notebook \\
+scikit-learn & \texttt{Pipeline}, \texttt{ColumnTransformer}, \texttt{SimpleImputer}, \texttt{StandardScaler}, \texttt{OneHotEncoder}, \texttt{Ridge}, \texttt{RandomForestRegressor}, \texttt{DummyRegressor}, chia tập và các độ đo & \texttt{train\_model.py} \\
 joblib & Lưu mô hình đã huấn luyện & \texttt{train\_model.py} \\
-Matplotlib, Seaborn & Mọi biểu đồ trong báo cáo & \texttt{pipeline.py}, \texttt{report/make\_figures.py} \\
+Matplotlib, Seaborn & Biểu đồ & \texttt{pipeline.py}, \texttt{report/make\_figures.py} \\
 Jupyter & Notebook trình bày các bước phân tích & \texttt{melbourne\_\allowbreak data\_\allowbreak analysis\_\allowbreak pipeline.ipynb} \\
 \bottomrule
 \end{tabular}
+\nguon{\texttt{requirements.txt}; việc dùng thư viện trong từng tệp xem mã nguồn.}
 \end{table}
