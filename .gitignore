@@ -240,3 +240,4 @@ report/*.fls
 report/*.fdb_latexmk
 report/*.synctex.gz
 report/*.pdf
+report/.texbuild/

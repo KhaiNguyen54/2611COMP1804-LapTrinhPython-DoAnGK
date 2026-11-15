@@ -90,8 +90,8 @@ Cột & Trước & Sau & Thay đổi \\
 Mỗi bảng, hình và số trong báo cáo có dòng ``Nguồn'' ngay bên dưới, thuộc một trong ba loại:
 \begin{itemize}[nosep]
   \item \textbf{Tệp do chương trình của dự án ghi}: \texttt{outputs/*.csv} và \texttt{outputs/*.png}, do \texttt{pipeline.py} và \texttt{train\_model.py} tạo ra khi chạy trên \texttt{data/melb\_data.csv}.
-  \item \textbf{Mã số liệu bổ sung} (N, L, P, M): các số không có sẵn trong \texttt{outputs/}, do \texttt{report/so\_lieu\_bo\_sung.py} tính và ghi vào \texttt{report/so\_lieu\_bo\_sung.csv} gồm bốn cột \texttt{ma}, \texttt{noi\_dung}, \texttt{gia\_tri}, \texttt{cach\_tinh}. Chữ cái đầu của mã cho biết nhóm: N (nguồn dữ liệu, Chương~\ref{ch:nguon}--\ref{ch:lamsach}), L (làm sạch), P (phân tích, Chương~\ref{ch:phantich}), M (mô hình, Chương~\ref{ch:mohinh}). Tập lệnh này chỉ đọc các tệp trên, không huấn luyện mô hình.
-  \item \textbf{Số đối chứng trước khi loại ngoại lai}: \texttt{report/doi\_chung/}, gồm hai tệp kết quả của \texttt{train\_model.py} chạy trên bản sao không áp dụng ba quy tắc ngoại lai; cách tạo ở \texttt{report/doi\_chung/README.md}.
+  \item \textbf{Mã số liệu bổ sung}: các số không có sẵn trong các bảng của \texttt{outputs/}, gồm bốn cột \texttt{ma}, \texttt{noi\_dung}, \texttt{gia\_tri}, \texttt{cach\_tinh}. Nhóm N (nguồn dữ liệu, Chương~\ref{ch:nguon}--\ref{ch:lamsach}), L (làm sạch) và P (phân tích, Chương~\ref{ch:phantich}) do hàm \texttt{build\_report\_metrics()} của \texttt{pipeline.py} ghi vào \texttt{outputs/report\_metrics.csv}. Nhóm M (mô hình, Chương~\ref{ch:mohinh}) do hàm \texttt{build\_model\_error\_metrics()} của \texttt{train\_model.py} ghi vào \texttt{outputs/model\_error\_metrics.csv}. Cả hai hàm chỉ đọc dữ liệu và kết quả đã có, không huấn luyện thêm mô hình.
+  \item \textbf{Số đối chứng trước khi loại ngoại lai}: \texttt{outputs/doi\_chung/}, gồm hai tệp kết quả của \texttt{train\_model.py} chạy trên bản sao không áp dụng ba quy tắc ngoại lai; cách tạo ở \texttt{outputs/doi\_chung/README.md}.
 \end{itemize}
 
 \section*{B.2. Bảng đối chiếu}
@@ -109,9 +109,9 @@ Bảng / hình & Tệp hoặc hàm tạo ra số liệu & Mã bổ sung \\
 \endlastfoot
 Quy mô, kiểu dữ liệu, giá trị khác nhau (Chương~\ref{ch:nguon}) & \texttt{data/melb\_data.csv}; \texttt{outputs/melb\_data\_clean.csv} & N01--N08, N12 \\
 Kiểm tra chất lượng (Bảng~\ref{tab:kiemtra}, \ref{tab:loi}) & \texttt{outputs/data\_quality\_profile.csv}; \texttt{audit\_data()} & N03, N07, N08, L01, L02 \\
-Hình~\ref{fig:missing}, \ref{fig:cleaning} & \texttt{report/make\_figures.py}: \texttt{f\_missing()}, \texttt{f\_cleaning()} & --- \\
+Hình~\ref{fig:missing}, \ref{fig:cleaning} & \texttt{pipeline.py}: \texttt{create\_quality\_charts()}, ghi \texttt{outputs/08\_*.png}, \texttt{09\_*.png} & --- \\
 Quy tắc làm sạch (Bảng~\ref{tab:quytac}, \ref{tab:quytac-day-du}, \ref{tab:thieu-truoc-sau}) & \texttt{pipeline.py}: \texttt{clean\_data()} & L01, L02, L03 \\
-Chia tập (Bảng~\ref{tab:chia}) & \texttt{train\_model.py}: \texttt{train\_test\_split} & L06 \\
+Chia tập (Bảng~\ref{tab:chia}) & \texttt{train\_model.py}: \texttt{train\_test\_split} & M06 \\
 Bảng~\ref{tab:mota-gia}, \ref{tab:mota-so} & \texttt{outputs/price\_summary.csv}; \texttt{outputs/melb\_data\_clean.csv} & L04, P01, P02 \\
 Bảng~\ref{tab:loainha}, \ref{tab:vung}, \ref{tab:sophong}, \ref{tab:suburb} & \texttt{outputs/price\_by\_type.csv}, \texttt{price\_by\_region.csv}, \texttt{price\_by\_rooms.csv}, \texttt{top\_suburbs.csv} & N09, N10, P03--P06 \\
 Bảng~\ref{tab:tuongquan}, \ref{tab:nhay}, \ref{tab:theoloai} & \texttt{outputs/price\_distance\_corr.csv} (một phần); còn lại tính từ \texttt{melb\_data\_clean.csv} và \texttt{data/melb\_data.csv} & P07 \\
@@ -120,15 +120,13 @@ Hình~\ref{fig:hist}--\ref{fig:corr} & \texttt{pipeline.py}: \texttt{create\_cha
 Bảng~\ref{tab:validation}, \ref{tab:test} & \texttt{outputs/model\_validation\_metrics.csv}, \texttt{outputs/model\_metrics.csv} & M01 \\
 Hình~\ref{fig:actual}, \ref{fig:residual} & \texttt{train\_model.py}, ghi \texttt{outputs/06\_*.png}, \texttt{07\_*.png} & M02 \\
 Bảng~\ref{tab:saiso-gia}, \ref{tab:saiso-loai} & \texttt{outputs/test\_predictions.csv} & M03--M05 \\
-Số trước/sau loại ngoại lai về mô hình (mục~\ref{sec:luuy}) & \texttt{report/doi\_chung/*.csv} so với \texttt{outputs/model\_*metrics.csv} & --- \\
+Số trước/sau loại ngoại lai về mô hình (mục~\ref{sec:luuy}) & \texttt{outputs/doi\_chung/*.csv} so với \texttt{outputs/model\_*metrics.csv} & --- \\
 \end{longtable}
 
 \section*{B.3. Kiểm chứng}
 \begin{lstlisting}[language=bash]
-python pipeline.py                  # tao outputs/ (phan tich, bieu do)
-python train_model.py               # tao outputs/model_*.csv, test_predictions.csv
-python report/so_lieu_bo_sung.py    # tao report/so_lieu_bo_sung.csv
-python report/make_figures.py       # tao lai cac hinh trong bao cao
+python pipeline.py      # outputs/: bang phan tich, 01-05 va 08-09 (hinh), report_metrics.csv
+python train_model.py   # outputs/: model_*.csv, test_predictions.csv, 06-07 (hinh), model_error_metrics.csv
 \end{lstlisting}
 Kết quả chạy lại có thể lệch rất nhỏ giữa các máy do phiên bản thư viện. Trong quá trình soạn báo cáo, Ridge trên validation cho MAE 231,137 ở một môi trường và 231,160 trong \texttt{outputs/}; Random Forest trùng khớp. Báo cáo dùng số trong \texttt{outputs/}.
 

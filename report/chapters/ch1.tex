@@ -16,7 +16,7 @@ Các mục tiêu cụ thể:
 \section{Phạm vi và câu hỏi nghiên cứu}
 \paragraph{Phạm vi.} Báo cáo chỉ dùng tệp \texttt{data/melb\_data.csv}. Mã nguồn gồm \texttt{pipeline.py} (kiểm tra, làm sạch, phân tích, biểu đồ), \texttt{train\_model.py} (huấn luyện và đánh giá mô hình) và notebook \texttt{melbourne\_\allowbreak data\_\allowbreak analysis\_\allowbreak pipeline.ipynb} (trình bày từng bước). Kết luận chỉ áp dụng cho Melbourne giai đoạn 2016--2017.
 
-\paragraph{Nguồn số liệu.} Mọi số liệu trong báo cáo thuộc một trong ba loại. Loại thứ nhất là các tệp do \texttt{pipeline.py} và \texttt{train\_model.py} ghi vào \texttt{outputs/}. Loại thứ hai là các số tính thêm từ dữ liệu bằng \texttt{report/so\_lieu\_bo\_sung.py}, ghi trong \texttt{report/so\_lieu\_bo\_sung.csv} cùng biểu thức tính. Loại thứ ba là các kết quả đối chứng trong \texttt{report/doi\_chung/}. Dưới mỗi bảng và hình có dòng \emph{Nguồn} chỉ rõ tệp hoặc mã số liệu; Phụ lục~\ref{pl:nguon} tổng hợp cách tái lập.
+\paragraph{Nguồn số liệu.} Mọi số liệu trong báo cáo thuộc một trong ba loại. Loại thứ nhất là các tệp do \texttt{pipeline.py} và \texttt{train\_model.py} ghi vào \texttt{outputs/}. Loại thứ hai là các số tính thêm, do hàm \texttt{build\_report\_metrics()} (\texttt{pipeline.py}) và \texttt{build\_model\_error\_metrics()} (\texttt{train\_model.py}) ghi vào \texttt{outputs/report\_metrics.csv} và \texttt{outputs/model\_error\_metrics.csv} cùng biểu thức tính. Loại thứ ba là các kết quả đối chứng trong \texttt{outputs/doi\_chung/}. Dưới mỗi bảng và hình có dòng \emph{Nguồn} chỉ rõ tệp hoặc mã số liệu; Phụ lục~\ref{pl:nguon} tổng hợp cách tái lập.
 
 \paragraph{Câu hỏi nghiên cứu.}
 \begin{description}[leftmargin=2.2em,style=sameline,nosep]
@@ -43,7 +43,7 @@ NumPy & Tính toán số, biến đổi \texttt{log1p} và ngược lại cho gi
 Pandas & Đọc CSV, kiểm tra dữ liệu thiếu, \texttt{groupby}, \texttt{query}, tương quan & \texttt{pipeline.py}, notebook \\
 scikit-learn & \texttt{Pipeline}, \texttt{ColumnTransformer}, \texttt{SimpleImputer}, \texttt{StandardScaler}, \texttt{OneHotEncoder}, \texttt{Ridge}, \texttt{RandomForestRegressor}, \texttt{DummyRegressor}, chia tập và các độ đo & \texttt{train\_model.py} \\
 joblib & Lưu mô hình đã huấn luyện & \texttt{train\_model.py} \\
-Matplotlib, Seaborn & Biểu đồ & \texttt{pipeline.py}, \texttt{report/make\_figures.py} \\
+Matplotlib, Seaborn & Biểu đồ & \texttt{pipeline.py}, \texttt{train\_model.py} \\
 Jupyter & Notebook trình bày các bước phân tích & \texttt{melbourne\_\allowbreak data\_\allowbreak analysis\_\allowbreak pipeline.ipynb} \\
 \bottomrule
 \end{tabular}

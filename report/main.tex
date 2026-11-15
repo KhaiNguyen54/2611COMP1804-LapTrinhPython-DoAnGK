@@ -28,7 +28,7 @@
 \setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.15}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
-\graphicspath{{figures/}}
+\graphicspath{{../outputs/}}
 
 \gappto\captionsvietnamese{%
   \renewcommand{\contentsname}{Mục lục}%
@@ -90,7 +90,8 @@
 \newcommand{\nguon}[1]{\par\smallskip\noindent{\footnotesize\raggedright\emph{Nguồn:} #1\par}}
 \emergencystretch=3em
 \DeclareRobustCommand{\_}{\textunderscore\allowbreak{}}
-\newcommand{\bs}[1]{\texttt{so\_lieu\_bo\_sung.csv} (mã #1)}
+\newcommand{\bs}[1]{\texttt{outputs/report\_metrics.csv} (mã #1)}
+\newcommand{\bm}[1]{\texttt{outputs/model\_error\_metrics.csv} (mã #1)}
 \newcommand{\TenTruong}{{Trường Đại học Sư Phạm TPHCM}}
 \newcommand{\TenKhoa}{{Khoa Công nghệ Thông tin}}
 \newcommand{\HoTen}{{Nguyễn Tuấn Khải}}

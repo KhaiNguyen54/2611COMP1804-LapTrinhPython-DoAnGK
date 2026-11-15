@@ -57,10 +57,6 @@ L04,"Giao dịch giá cao nhất: suburb, giá, số phòng, khoảng cách","Mu
 L05,Giá trung vị khi BuildingArea_was_missing = 1 / 0,917000 / 895000,outputs/melb_data_clean.csv: groupby(BuildingArea_was_missing).Price.median()
 L05,Giá trung vị khi YearBuilt_was_missing = 1 / 0,937500 / 880000,outputs/melb_data_clean.csv: groupby(YearBuilt_was_missing).Price.median()
 L05,Giá trung vị khi Landsize == 0 / Landsize > 0,560000 / 975000,outputs/melb_data_clean.csv
-L06,Tập train: số dòng / tỷ lệ / giá trung vị,8691 / 64% / 908000,"train_test_split(test_size=0.2, random_state=42) hai lần"
-L06,Tập validation: số dòng / tỷ lệ / giá trung vị,2173 / 16% / 895000,"train_test_split(test_size=0.2, random_state=42) hai lần"
-L06,Tập test: số dòng / tỷ lệ / giá trung vị,2716 / 20% / 900000,"train_test_split(test_size=0.2, random_state=42) hai lần"
-L06,Train gộp validation (dùng huấn luyện lại),10864,train_test_split lần 1
 P01,Độ lệch chuẩn / hệ số biến thiên của giá,639311 / 0.59,outputs/melb_data_clean.csv: Price.std()/Price.mean()
 P01,Phân vị 10% / 90% / 99%,480000 / 1850000 / 3338150,"outputs/melb_data_clean.csv: Price.quantile([.1, .9, .99])"
 P01,Trung bình cao hơn trung vị (%),19.1234,outputs/melb_data_clean.csv
@@ -85,7 +81,7 @@ P05,Tăng trung vị theo số phòng 2..6 (%),"2:+79, 3:+38, 4:+35, 5:+29, 6:+8
 P05,Trung vị 4 phòng / 1 phòng,3.3377,outputs/melb_data_clean.csv
 P05,Nhóm số phòng dưới 20 giao dịch: số nhóm; tổng số dòng,3; 19,outputs/melb_data_clean.csv: Rooms.value_counts()
 P06,Số suburb; suburb từ 30 giao dịch; suburb dưới 5 giao dịch,314; 125; 59,outputs/melb_data_clean.csv: groupby(Suburb)
-P06,Trung vị suburb đứng đầu / trung vị chung; suburb thứ 10 / trung vị chung,2.10; 1.84,outputs/top_suburbs.csv
+P06,Trung vị suburb đứng đầu / trung vị chung; suburb thứ 10 / trung vị chung,2.10; 1.84,outputs/top_suburbs.csv (cùng cách tính với analyze_data)
 P07,Pearson / Spearman của Rooms với Price,0.497 / 0.540,"outputs/melb_data_clean.csv: df[cols].corr(), corr(method='spearman')"
 P07,Pearson / Spearman của Bedroom2 với Price,0.476 / 0.524,"outputs/melb_data_clean.csv: df[cols].corr(), corr(method='spearman')"
 P07,Pearson / Spearman của Bathroom với Price,0.469 / 0.429,"outputs/melb_data_clean.csv: df[cols].corr(), corr(method='spearman')"
@@ -102,7 +98,7 @@ P07,Pearson của Landsize với Price theo loại nhà (chỉ Landsize > 0),h=0
 P07,Pearson của YearBuilt với Price theo loại nhà,h=-0.251; t=-0.052; u=-0.009,outputs/melb_data_clean.csv: Type == t
 P07,Số dòng có YearBuilt,8204,outputs/melb_data_clean.csv
 P07,Pearson giữa thuộc tính: Rooms-Bedroom2; Rooms-Bathroom; Landsize-BuildingArea; YearBuilt-Distance,0.944; 0.594; 0.172; 0.255,outputs/melb_data_clean.csv
-P08,Trung vị tháng 7 so với tháng 6; tháng 8 (%),-13.2; -19.8,outputs/price_by_sale_month.csv
+P08,Trung vị tháng 7 so với tháng 6; tháng 8 (%),-13.2; -19.8,outputs/price_by_sale_month.csv (cùng cách tính với analyze_data)
 P08,Năm 2016: số giao dịch; giá trung vị,6336; 900000,outputs/melb_data_clean.csv: SaleYear == 2016
 P08,Năm 2017: số giao dịch; giá trung vị,7244; 910000,outputs/melb_data_clean.csv: SaleYear == 2017
 P08,Trung vị 2017 so với 2016 (%),1.1111,outputs/melb_data_clean.csv
@@ -115,30 +111,3 @@ P09,Tỷ lệ giao dịch dưới 2 triệu (%),92.1797,outputs/melb_data_clean.
 P09,Giao dịch trên 2 triệu: số dòng; % nằm trong 15 km,1007; 97.2,outputs/melb_data_clean.csv
 P09,Giao dịch ngoài 20 km: số dòng; % dưới 1.5 triệu,731; 97.9,outputs/melb_data_clean.csv
 P09,Giá trung vị theo Method S; SP,925000; 770000,outputs/melb_data_clean.csv: groupby(Method)
-M01,MAE validation của Random Forest thấp hơn Ridge (%),33.0051,outputs/model_validation_metrics.csv
-M01,MAE test của Random Forest thấp hơn baseline (%),64.4469,outputs/model_metrics.csv
-M02,Số dòng test; hệ số tương quan giữa giá thực và giá dự đoán,2716; 0.910,outputs/test_predictions.csv
-M02,MAPE; sai số tương đối trung vị (%),13.7; 10.0,|thực - dự đoán| / thực
-M02,Tỷ lệ lệch không quá 10%; 20% (%),50.1; 77.8,|thực - dự đoán| / thực
-M02,Sai số (thực - dự đoán): trung vị; trung bình,361; 30173,outputs/test_predictions.csv: Residual
-M02,Giá thực trên 1.5 triệu: số dòng; % bị dự đoán thấp,491; 72,outputs/test_predictions.csv
-M02,Giá thực lớn nhất; giá dự đoán lớn nhất,6500000; 4246907,outputs/test_predictions.csv
-M03,Khoảng giá <600k: số dòng; MAE; MAPE (%); lệch trung bình,520; 71087; 16.2; -46451,outputs/test_predictions.csv
-M03,Khoảng giá 600k-1M: số dòng; MAE; MAPE (%); lệch trung bình,1020; 92289; 11.8; -22179,outputs/test_predictions.csv
-M03,Khoảng giá 1M-1.5M: số dòng; MAE; MAPE (%); lệch trung bình,665; 157964; 12.8; +15674,outputs/test_predictions.csv
-M03,Khoảng giá >=1.5M: số dòng; MAE; MAPE (%); lệch trung bình,511; 368100; 16.3; +231515,outputs/test_predictions.csv
-M03,Loại nhà h: số dòng; MAE; MAPE (%); lệch trung bình,1917; 180545; 13.7; +38193,outputs/test_predictions.csv
-M03,Loại nhà t: số dòng; MAE; MAPE (%); lệch trung bình,211; 109692; 12.6; -19001,outputs/test_predictions.csv
-M03,Loại nhà u: số dòng; MAE; MAPE (%); lệch trung bình,588; 93533; 14.5; +21672,outputs/test_predictions.csv
-M04,Vùng Eastern Metropolitan: số dòng test; MAE,302; 140943,outputs/test_predictions.csv
-M04,Vùng Eastern Victoria: số dòng test; MAE,16; 143431,outputs/test_predictions.csv
-M04,Vùng Northern Metropolitan: số dòng test; MAE,771; 117143,outputs/test_predictions.csv
-M04,Vùng Northern Victoria: số dòng test; MAE,7; 70138,outputs/test_predictions.csv
-M04,Vùng South-Eastern Metropolitan: số dòng test; MAE,84; 129473,outputs/test_predictions.csv
-M04,Vùng Southern Metropolitan: số dòng test; MAE,937; 224961,outputs/test_predictions.csv
-M04,Vùng Western Metropolitan: số dòng test; MAE,594; 112156,outputs/test_predictions.csv
-M04,Vùng Western Victoria: số dòng test; MAE,5; 58668,outputs/test_predictions.csv
-M05,"Ba sai số lớn nhất (dự đoán thấp hơn thực tế): suburb, loại, giá thực, giá dự đoán","Kew, h, 6500000, 3513058",outputs/test_predictions.csv
-M05,"Ba sai số lớn nhất (dự đoán thấp hơn thực tế): suburb, loại, giá thực, giá dự đoán","Parkville, h, 3970000, 2032176",outputs/test_predictions.csv
-M05,"Ba sai số lớn nhất (dự đoán thấp hơn thực tế): suburb, loại, giá thực, giá dự đoán","Middle Park, h, 3750000, 1895453",outputs/test_predictions.csv
-M05,"Sai số lớn nhất theo chiều ngược lại: suburb, loại, giá thực, giá dự đoán","South Melbourne, h, 770000, 2558914",outputs/test_predictions.csv

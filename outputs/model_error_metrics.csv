@@ -1,0 +1,32 @@
+﻿ma,noi_dung,gia_tri,cach_tinh
+M06,Tập train: số dòng / tỷ lệ / giá trung vị,8691 / 64% / 908000,"train_test_split(test_size=0.2, random_state=42) hai lần"
+M06,Tập validation: số dòng / tỷ lệ / giá trung vị,2173 / 16% / 895000,"train_test_split(test_size=0.2, random_state=42) hai lần"
+M06,Tập test: số dòng / tỷ lệ / giá trung vị,2716 / 20% / 900000,"train_test_split(test_size=0.2, random_state=42) hai lần"
+M06,Train gộp validation (dùng huấn luyện lại),10864,train_test_split lần 1
+M01,MAE validation của Random Forest thấp hơn Ridge (%),33.0051,outputs/model_validation_metrics.csv
+M01,MAE test của Random Forest thấp hơn baseline (%),64.4469,outputs/model_metrics.csv
+M02,Số dòng test; hệ số tương quan giữa giá thực và giá dự đoán,2716; 0.910,outputs/test_predictions.csv
+M02,MAPE; sai số tương đối trung vị (%),13.7; 10.0,|thực - dự đoán| / thực
+M02,Tỷ lệ lệch không quá 10%; 20% (%),50.1; 77.8,|thực - dự đoán| / thực
+M02,Sai số (thực - dự đoán): trung vị; trung bình,361; 30173,test_results['Residual']
+M02,Giá thực trên 1.5 triệu: số dòng; % bị dự đoán thấp,491; 72,outputs/test_predictions.csv
+M02,Giá thực lớn nhất; giá dự đoán lớn nhất,6500000; 4246907,outputs/test_predictions.csv
+M03,Khoảng giá <600k: số dòng; MAE; MAPE (%); lệch trung bình,520; 71087; 16.2; -46451,outputs/test_predictions.csv
+M03,Khoảng giá 600k-1M: số dòng; MAE; MAPE (%); lệch trung bình,1020; 92289; 11.8; -22179,outputs/test_predictions.csv
+M03,Khoảng giá 1M-1.5M: số dòng; MAE; MAPE (%); lệch trung bình,665; 157964; 12.8; +15674,outputs/test_predictions.csv
+M03,Khoảng giá >=1.5M: số dòng; MAE; MAPE (%); lệch trung bình,511; 368100; 16.3; +231515,outputs/test_predictions.csv
+M03,Loại nhà h: số dòng; MAE; MAPE (%); lệch trung bình,1917; 180545; 13.7; +38193,outputs/test_predictions.csv
+M03,Loại nhà t: số dòng; MAE; MAPE (%); lệch trung bình,211; 109692; 12.6; -19001,outputs/test_predictions.csv
+M03,Loại nhà u: số dòng; MAE; MAPE (%); lệch trung bình,588; 93533; 14.5; +21672,outputs/test_predictions.csv
+M04,Vùng Eastern Metropolitan: số dòng test; MAE,302; 140943,outputs/test_predictions.csv
+M04,Vùng Eastern Victoria: số dòng test; MAE,16; 143431,outputs/test_predictions.csv
+M04,Vùng Northern Metropolitan: số dòng test; MAE,771; 117143,outputs/test_predictions.csv
+M04,Vùng Northern Victoria: số dòng test; MAE,7; 70138,outputs/test_predictions.csv
+M04,Vùng South-Eastern Metropolitan: số dòng test; MAE,84; 129473,outputs/test_predictions.csv
+M04,Vùng Southern Metropolitan: số dòng test; MAE,937; 224961,outputs/test_predictions.csv
+M04,Vùng Western Metropolitan: số dòng test; MAE,594; 112156,outputs/test_predictions.csv
+M04,Vùng Western Victoria: số dòng test; MAE,5; 58668,outputs/test_predictions.csv
+M05,"Ba sai số lớn nhất (dự đoán thấp hơn thực tế): suburb, loại, giá thực, giá dự đoán","Kew, h, 6500000, 3513058",outputs/test_predictions.csv
+M05,"Ba sai số lớn nhất (dự đoán thấp hơn thực tế): suburb, loại, giá thực, giá dự đoán","Parkville, h, 3970000, 2032176",outputs/test_predictions.csv
+M05,"Ba sai số lớn nhất (dự đoán thấp hơn thực tế): suburb, loại, giá thực, giá dự đoán","Middle Park, h, 3750000, 1895453",outputs/test_predictions.csv
+M05,"Sai số lớn nhất theo chiều ngược lại: suburb, loại, giá thực, giá dự đoán","South Melbourne, h, 770000, 2558914",outputs/test_predictions.csv

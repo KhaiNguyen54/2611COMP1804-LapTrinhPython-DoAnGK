@@ -47,9 +47,9 @@ Khung tọa độ kiểm tra là \texttt{Lattitude} trong $[-39.5;\,-36.0]$ và 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\linewidth]{f_missing.png}
+\includegraphics[width=0.78\linewidth]{08_missing_by_column.png}
 \caption{Tỷ lệ dữ liệu thiếu theo cột trong tệp gốc}\label{fig:missing}
-\nguon{\texttt{report/make\_figures.py}, hàm \texttt{f\_missing()}, từ \texttt{data/melb\_data.csv}.}
+\nguon{\texttt{outputs/08\_missing\_by\_column.png}, do hàm \texttt{create\_quality\_charts()} trong \texttt{pipeline.py} vẽ từ \texttt{data/melb\_data.csv}.}
 \end{figure}
 
 \texttt{BuildingArea} và \texttt{YearBuilt} thiếu gần một nửa: loại mọi dòng thiếu một trong hai cột sau làm sạch sẽ mất 6,744 dòng (49.7\%) (\bs{L03}). Vì vậy dự án không xóa dòng mà xử lý giá trị thiếu trong \texttt{Pipeline} của mô hình (mục~\ref{sec:thieu}).
@@ -84,9 +84,9 @@ Hàm \texttt{clean\_data()} của \texttt{pipeline.py} chuyển giá trị khôn
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\linewidth]{f_cleaning.png}
+\includegraphics[width=0.78\linewidth]{09_cleaning_rule_effect.png}
 \caption{Số dòng bị ảnh hưởng bởi từng quy tắc làm sạch}\label{fig:cleaning}
-\nguon{\texttt{report/make\_figures.py}, hàm \texttt{f\_cleaning()}, đếm từ \texttt{data/melb\_data.csv}.}
+\nguon{\texttt{outputs/09\_cleaning\_rule\_effect.png}, do hàm \texttt{create\_quality\_charts()} trong \texttt{pipeline.py} đếm từ \texttt{data/melb\_data.csv}.}
 \end{figure}
 
 Không dòng nào bị xóa: bảng sạch giữ 13,580 dòng và 27 cột. Số ô thiếu sau làm sạch: \texttt{BuildingArea} 6,475 (6,450 cộng 25 ô quy tắc 5), \texttt{YearBuilt} 5,376, \texttt{Landsize} 26, \texttt{Bathroom} 34, \texttt{Car} 62, \texttt{CouncilArea} 0 (\bs{L03}).
@@ -114,7 +114,7 @@ Validation & 2,173 & 16\% & 895,000 \\
 Test & 2,716 & 20\% & 900,000 \\
 \bottomrule
 \end{tabular}
-\nguon{\texttt{train\_model.py} (\texttt{train\_test\_split}); số dòng và trung vị: \bs{L06}.}
+\nguon{\texttt{train\_model.py} (\texttt{train\_test\_split}); số dòng và trung vị: \bm{M06}.}
 \end{table}
 
 Giá trung vị của ba tập gần nhau (895,000 đến 908,000). Tuy nhiên dữ liệu có ngày bán và phép chia ngẫu nhiên để giao dịch \emph{sau} nằm lẫn trong tập train, nên sai số ở Chương~\ref{ch:mohinh} có thể lạc quan hơn so với dự đoán cho giai đoạn chưa xảy ra. Chia theo thời gian là hướng cải thiện (mục~\ref{sec:hanche}).

@@ -1,15 +1,15 @@
 \chapter{Phân tích thống kê}\label{ch:phantich}
 
-Chương này trình bày bảy phép phân tích trên dữ liệu đã làm sạch (13,580 dòng). Mỗi phép gồm \emph{mục đích}, \emph{phương pháp}, \emph{kết quả} và \emph{diễn giải}. Sáu phép đầu dùng các bảng \texttt{price\_summary}, \texttt{price\_by\_type}, \texttt{price\_by\_region}, \texttt{price\_by\_rooms}, \texttt{top\_suburbs}, \texttt{price\_distance\_corr} do \texttt{pipeline.py} ghi vào \texttt{outputs/}; phép thứ bảy dùng \texttt{price\_by\_sale\_month}. Giá tính bằng đô la Úc (AUD), là giá danh nghĩa tại thời điểm bán, không điều chỉnh lạm phát. Các số không có sẵn trong \texttt{outputs/} được tính bằng \texttt{report/so\_lieu\_bo\_sung.py} và truy theo mã số liệu.
+Chương này trình bày bảy phép phân tích trên dữ liệu đã làm sạch (13,580 dòng). Mỗi phép gồm \emph{mục đích}, \emph{phương pháp}, \emph{kết quả} và \emph{diễn giải}. Sáu phép đầu dùng các bảng \texttt{price\_summary}, \texttt{price\_by\_type}, \texttt{price\_by\_region}, \texttt{price\_by\_rooms}, \texttt{top\_suburbs}, \texttt{price\_distance\_corr} do \texttt{pipeline.py} ghi vào \texttt{outputs/}; phép thứ bảy dùng \texttt{price\_by\_sale\_month}. Giá tính bằng đô la Úc (AUD), là giá danh nghĩa tại thời điểm bán, không điều chỉnh lạm phát. Các số không có sẵn trong các bảng trên được hàm \texttt{build\_report\_metrics()} của \texttt{pipeline.py} tính và ghi vào \texttt{outputs/report\_metrics.csv}, truy theo mã số liệu.
 
 \section{Thống kê mô tả}\label{sec:mota}
 
 \subsection{Phép 1. Phân phối của giá và các thuộc tính số}\label{sec:p1}
 \paragraph{Mục đích.} Xác định giá tập trung ở đâu, trải rộng và lệch đến mức nào, để chọn cách biểu diễn giá khi mô hình hóa.
-\paragraph{Phương pháp.} Dùng \texttt{describe()} cho \texttt{Price} và các thuộc tính số (\texttt{pipeline.py}), kèm các phân vị 10\%, 90\%, 99\%, độ lệch (\texttt{skew}) và hệ số biến thiên (độ lệch chuẩn chia trung bình) tính trong \texttt{so\_lieu\_bo\_sung.py}.
+\paragraph{Phương pháp.} Dùng \texttt{describe()} cho \texttt{Price} và các thuộc tính số (\texttt{pipeline.py}), kèm các phân vị 10\%, 90\%, 99\%, độ lệch (\texttt{skew}) và hệ số biến thiên (độ lệch chuẩn chia trung bình) tính trong \texttt{build\_report\_metrics()}.
 \begin{lstlisting}
 df["Price"].describe()                              # pipeline.py
-df["Price"].quantile([.1, .9, .99])                 # so_lieu_bo_sung.py
+df["Price"].quantile([.1, .9, .99])                 # build_report_metrics()
 df["Price"].skew(), np.log(df["Price"]).skew()
 \end{lstlisting}
 
@@ -171,7 +171,7 @@ Ashburton & 60 & 1,658,500 & 1,728,725 \\
 
 \subsection{Phép 6. Tương quan Pearson và độ nhạy với ngoại lai}\label{sec:p6}
 \paragraph{Mục đích.} Xác định thuộc tính số liên hệ mạnh nhất với giá, và kiểm tra ngoại lai về diện tích có làm sai lệch kết quả không.
-\paragraph{Phương pháp.} Tính ma trận Pearson bằng \texttt{df[cols].corr()} (Pandas bỏ qua cặp có ô thiếu). Để kiểm tra độ nhạy, tính thêm tương quan hạng Spearman (ít bị ngoại lai ảnh hưởng), so Pearson trước và sau khi loại ngoại lai, và tách theo loại nhà. Các phép kiểm tra thêm nằm trong \texttt{so\_lieu\_bo\_sung.py}, không nằm trong \texttt{pipeline.py}. ``Trước khi loại ngoại lai'' là \texttt{data/melb\_data.csv} với \texttt{BuildingArea} $\leq$ 0 đặt thành thiếu (đúng trạng thái trước khi bổ sung ba quy tắc ngoại lai).
+\paragraph{Phương pháp.} Tính ma trận Pearson bằng \texttt{df[cols].corr()} (Pandas bỏ qua cặp có ô thiếu). Để kiểm tra độ nhạy, tính thêm tương quan hạng Spearman (ít bị ngoại lai ảnh hưởng), so Pearson trước và sau khi loại ngoại lai, và tách theo loại nhà. Các phép kiểm tra thêm nằm trong \texttt{build\_report\_metrics()} của \texttt{pipeline.py}, không nằm trong \texttt{analyze\_data()}. ``Trước khi loại ngoại lai'' là \texttt{data/melb\_data.csv} với \texttt{BuildingArea} $\leq$ 0 đặt thành thiếu (đúng trạng thái trước khi bổ sung ba quy tắc ngoại lai).
 \begin{lstlisting}
 cols = ["Price", "Rooms", "Bedroom2", "Bathroom", "Car", "Distance",
         "Landsize", "BuildingArea", "YearBuilt", "Propertycount"]

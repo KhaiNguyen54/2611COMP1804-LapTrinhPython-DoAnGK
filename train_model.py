@@ -80,6 +80,52 @@ def evaluate(y_true, y_pred):
     }
 
 
+# Hàm tổng hợp số đo sai số mà báo cáo trích (nhóm M); chỉ đọc kết quả đã có, không huấn luyện thêm
+def build_model_error_metrics(validation_metrics, metrics, test_results, y_train, y_val, y_test, y_train_full):
+    rows = []
+
+    def r(ma, noi_dung, gia_tri, cach_tinh):
+        if isinstance(gia_tri, (float, np.floating)):
+            gia_tri = round(float(gia_tri), 4)
+        rows.append({"ma": ma, "noi_dung": noi_dung, "gia_tri": gia_tri, "cach_tinh": cach_tinh})
+
+    n_total = len(y_train_full) + len(y_test)
+    for ten, s in [("train", y_train), ("validation", y_val), ("test", y_test)]:
+        r("M06", f"Tập {ten}: số dòng / tỷ lệ / giá trung vị", f"{len(s)} / {len(s) / n_total * 100:.0f}% / {s.median():.0f}", "train_test_split(test_size=0.2, random_state=42) hai lần")
+    r("M06", "Train gộp validation (dùng huấn luyện lại)", len(y_train_full), "train_test_split lần 1")
+
+    vm = validation_metrics.set_index("Model")
+    tm = metrics.set_index("Model")
+    r("M01", "MAE validation của Random Forest thấp hơn Ridge (%)", (1 - vm.loc["RandomForest_log_target", "MAE_AUD"] / vm.loc["Ridge", "MAE_AUD"]) * 100, "outputs/model_validation_metrics.csv")
+    r("M01", "MAE test của Random Forest thấp hơn baseline (%)", (1 - tm.loc["RandomForest_log_target", "MAE_AUD"] / tm.loc["Baseline_median", "MAE_AUD"]) * 100, "outputs/model_metrics.csv")
+    t = test_results
+    a, p = t.ActualPrice, t.PredictedPrice
+    e = a - p
+    ape = e.abs() / a
+    r("M02", "Số dòng test; hệ số tương quan giữa giá thực và giá dự đoán", f"{len(t)}; {np.corrcoef(a, p)[0, 1]:.3f}", "outputs/test_predictions.csv")
+    r("M02", "MAPE; sai số tương đối trung vị (%)", f"{ape.mean() * 100:.1f}; {ape.median() * 100:.1f}", "|thực - dự đoán| / thực")
+    r("M02", "Tỷ lệ lệch không quá 10%; 20% (%)", f"{(ape <= .1).mean() * 100:.1f}; {(ape <= .2).mean() * 100:.1f}", "|thực - dự đoán| / thực")
+    r("M02", "Sai số (thực - dự đoán): trung vị; trung bình", f"{e.median():.0f}; {e.mean():.0f}", "test_results['Residual']")
+    hi = a > 1.5e6
+    r("M02", "Giá thực trên 1.5 triệu: số dòng; % bị dự đoán thấp", f"{int(hi.sum())}; {(p[hi] < a[hi]).mean() * 100:.0f}", "outputs/test_predictions.csv")
+    r("M02", "Giá thực lớn nhất; giá dự đoán lớn nhất", f"{a.max():.0f}; {p.max():.0f}", "outputs/test_predictions.csv")
+    seg = pd.cut(a, [0, 6e5, 1e6, 1.5e6, 1e12], right=False, labels=["<600k", "600k-1M", "1M-1.5M", ">=1.5M"])
+    for k, gdf in t.assign(seg=seg, ae=e.abs(), ape=ape * 100).groupby("seg", observed=True):
+        r("M03", f"Khoảng giá {k}: số dòng; MAE; MAPE (%); lệch trung bình", f"{len(gdf)}; {gdf.ae.mean():.0f}; {gdf.ape.mean():.1f}; {(gdf.ActualPrice - gdf.PredictedPrice).mean():+.0f}", "outputs/test_predictions.csv")
+    for k, gdf in t.assign(ae=e.abs(), ape=ape * 100).groupby("Type"):
+        r("M03", f"Loại nhà {k}: số dòng; MAE; MAPE (%); lệch trung bình", f"{len(gdf)}; {gdf.ae.mean():.0f}; {gdf.ape.mean():.1f}; {(gdf.ActualPrice - gdf.PredictedPrice).mean():+.0f}", "outputs/test_predictions.csv")
+    for k, gdf in t.assign(ae=e.abs()).groupby("Regionname"):
+        r("M04", f"Vùng {k}: số dòng test; MAE", f"{len(gdf)}; {gdf.ae.mean():.0f}", "outputs/test_predictions.csv")
+    top = t.assign(ae=e.abs(), e=e).sort_values("ae", ascending=False)
+    for _, x in top.head(3).iterrows():
+        r("M05", "Ba sai số lớn nhất (dự đoán thấp hơn thực tế): suburb, loại, giá thực, giá dự đoán", f"{x.Suburb}, {x.Type}, {x.ActualPrice:.0f}, {x.PredictedPrice:.0f}", "outputs/test_predictions.csv")
+    x = top[top.e < 0].iloc[0]
+    r("M05", "Sai số lớn nhất theo chiều ngược lại: suburb, loại, giá thực, giá dự đoán", f"{x.Suburb}, {x.Type}, {x.ActualPrice:.0f}, {x.PredictedPrice:.0f}", "outputs/test_predictions.csv")
+
+    return pd.DataFrame(rows)
+
+
+
 def main():
     if not DATA_PATH.exists():
         raise FileNotFoundError(
@@ -173,6 +219,10 @@ def main():
     test_results["PredictedPrice"] = best_predictions
     test_results["Residual"] = test_results["ActualPrice"] - test_results["PredictedPrice"]
     test_results.to_csv(OUTPUT_DIR / "test_predictions.csv", index=False, encoding="utf-8-sig")
+
+    build_model_error_metrics(
+        validation_metrics, metrics, test_results, y_train, y_val, y_test, y_train_full
+    ).to_csv(OUTPUT_DIR / "model_error_metrics.csv", index=False, encoding="utf-8-sig")
 
     metadata = {
         "target": TARGET,
