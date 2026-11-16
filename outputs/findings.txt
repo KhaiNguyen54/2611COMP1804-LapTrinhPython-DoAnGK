@@ -1,5 +1,5 @@
-1. Loại h có giá trung vị cao nhất (1,080,000 AUD), trong khi loại u thấp nhất (560,000 AUD); chênh lệch trung vị khoảng 1.93 lần.
-2. Trong các khu vực có ít nhất 30 bản ghi, Southern Metropolitan có giá trung vị cao nhất (1,250,000 AUD), còn Western Victoria thấp nhất (400,000 AUD).
-3. Tương quan Pearson giữa Price và Rooms là 0.50; trong snapshot này, hai biến có liên hệ tuyến tính dương, nhưng điều đó không chứng minh số phòng là nguyên nhân duy nhất làm giá tăng.
-4. Tương quan Pearson giữa Price và Distance là -0.16; liên hệ tuyến tính với khoảng cách đến CBD yếu hơn liên hệ với số phòng trong tập dữ liệu này.
-5. BuildingArea còn thiếu 47.7% và YearBuilt còn thiếu 39.6% sau khi làm sạch; cần cân nhắc cẩn thận trước khi dùng hai cột này trong mô hình hoặc thống kê.
+1. Loại h có giá trung vị cao nhất (1,080,000 AUD), trong khi loại u thấp nhất (560,000 AUD); mức chênh lệch trung vị xấp xỉ 1.93 lần.
+2. Trong các khu vực có ít nhất 30 bản ghi, Southern Metropolitan có giá trung vị cao nhất (1,250,000 AUD); Western Victoria thấp nhất (400,000 AUD).
+3. Hệ số tương quan Pearson giữa Price và Rooms là 0.50; trong dataset này, số phòng có mối liên hệ tuyến tính dương với giá, nhưng tương quan không chứng minh quan hệ nhân quả.
+4. Hệ số tương quan Pearson giữa Price và Distance là -0.16; mối liên hệ tuyến tính với khoảng cách đến CBD yếu hơn quan hệ với số phòng và có thể khác nhau theo khu vực/loại bất động sản.
+5. BuildingArea có khoảng 47.7% giá trị thiếu và YearBuilt có khoảng 39.6% thiếu sau bước xử lý giá trị bất hợp lý; nên thận trọng khi dùng hai biến này.
