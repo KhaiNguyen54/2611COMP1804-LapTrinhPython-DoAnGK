@@ -100,6 +100,7 @@ Kết quả được ghi vào:
 - `outputs/model_metrics.csv`: kết quả trên tập test của mô hình đã chọn và baseline.
 - `outputs/test_predictions.csv`: giá thực tế, giá dự đoán và residual của tập test.
 - `outputs/06_actual_vs_predicted.png`, `outputs/07_residual_distribution.png`: biểu đồ chẩn đoán.
+- `outputs/model_fit_check.csv`: sai số trên tập train đặt cạnh validation/test để kiểm tra quá khớp, dưới khớp.
 - `outputs/model_error_metrics.csv`: MAPE, sai số theo phân khúc, vùng, loại nhà và kích thước các tập (các số bổ sung của báo cáo, kèm cách tính).
 
 **Lưu ý đánh giá:** bộ dữ liệu là snapshot lịch sử Melbourne, không phải dữ liệu giá hiện tại. Chia ngẫu nhiên phù hợp để thiết lập baseline cho bài tập, nhưng sai số có thể lạc quan hơn so với dự đoán giai đoạn sau; nếu mục tiêu là dự đoán cho giai đoạn tương lai, nên dùng chia tập theo thời gian. Mô hình hiện dùng cả `Method`, `Postcode` và `Bedroom2`; nếu định giá trước khi bán, nên thử loại `Method`. Số đo có thể lệch nhẹ giữa các phiên bản thư viện. Hãy chạy `train_model.py` trong đúng môi trường của ứng dụng để tự sinh file `.joblib`; không nên chuyển file mô hình đã lưu giữa các phiên bản thư viện khác nhau mà chưa kiểm tra tương thích.

@@ -1,6 +1,31 @@
 \chapter{Cơ sở lý thuyết scikit-learn}\label{ch:lythuyet}
 
-Chương này giải thích các thành phần của scikit-learn mà \texttt{train\_model.py} sử dụng: vì sao được chọn, hoạt động thế nào và tham số nào đã đặt. Phần lý thuyết tổng quát lấy từ tài liệu scikit-learn \cite{sklearn-guide} và các công trình gốc \cite{pedregosa2011,hoerl1970,breiman2001}; phần gắn với đề tài dẫn tên hàm, biến trong mã nguồn và số liệu có mã truy nguồn. Bảng~\ref{tab:thanhphan} ở cuối chương tổng hợp toàn bộ thành phần.
+Chương này giới thiệu tổng quan về scikit-learn rồi giải thích các thành phần mà \texttt{train\_model.py} sử dụng: vì sao được chọn, hoạt động thế nào và tham số nào đã đặt. Phần lý thuyết tổng quát lấy từ tài liệu scikit-learn \cite{sklearn-guide} và các công trình gốc \cite{pedregosa2011,hoerl1970,breiman2001}; phần gắn với đề tài dẫn tên hàm, biến trong mã nguồn và số liệu có mã truy nguồn. Bảng~\ref{tab:thanhphan} ở cuối chương tổng hợp toàn bộ thành phần.
+
+\section{Tổng quan về scikit-learn}\label{sec:tongquan}
+scikit-learn là thư viện Python mã nguồn mở (giấy phép BSD) cho học máy cổ điển, xây dựng trên NumPy, SciPy và Matplotlib \cite{pedregosa2011}. Thư viện cung cấp thuật toán hồi quy, phân loại, phân cụm và giảm chiều, cùng các công cụ tiền xử lý, chọn mô hình và đánh giá, và không nhắm tới học sâu. Các nguyên tắc thiết kế gồm: giao diện nhất quán giữa các đối tượng, thuộc tính đã học có thể kiểm tra, ghép các thành phần thành chuỗi, và tham số mặc định hợp lý \cite{buitinck2013}.
+
+\begin{table}[H]
+\centering
+\caption{Các mô-đun scikit-learn dùng trong đề tài}\label{tab:modun}
+\small
+\begin{tabular}{@{}L{3.2cm} L{4.4cm} L{5.0cm}@{}}
+\toprule
+Mô-đun & Chức năng chung & Dùng trong đề tài \\
+\midrule
+\texttt{impute} & Điền ô thiếu & \texttt{SimpleImputer} \\
+\texttt{preprocessing} & Chuẩn hóa, mã hóa & \texttt{StandardScaler}, \texttt{OneHotEncoder} \\
+\texttt{compose} & Xử lý theo nhóm cột, biến đổi biến mục tiêu & \texttt{ColumnTransformer}, \texttt{Transformed}\allowbreak\texttt{TargetRegressor} \\
+\texttt{pipeline} & Ghép các bước thành một đối tượng & \texttt{Pipeline} \\
+\texttt{linear\_model} & Mô hình tuyến tính & \texttt{Ridge} \\
+\texttt{ensemble} & Tập hợp nhiều mô hình & \texttt{RandomForest}\allowbreak\texttt{Regressor} \\
+\texttt{dummy} & Mô hình cơ sở không dùng thuộc tính & \texttt{DummyRegressor} \\
+\texttt{model\_selection} & Chia tập, kiểm định chéo, dò tham số & \texttt{train\_test\_split} \\
+\texttt{metrics} & Chỉ số đánh giá & \texttt{mean\_absolute\_error}, \texttt{mean\_squared\_error}, \texttt{r2\_score} \\
+\bottomrule
+\end{tabular}
+\nguon{\cite{sklearn-guide}; \texttt{train\_model.py} (các câu lệnh \texttt{import}).}
+\end{table}
 
 \section{Giao diện thống nhất: estimator, transformer, predictor}\label{sec:api}
 Mọi đối tượng trong scikit-learn tuân theo một số giao diện chung, nhờ đó các thành phần ghép được với nhau.
@@ -105,7 +130,7 @@ R^2 &= 1-\frac{\sum_i (y_i-\hat{y}_i)^2}{\sum_i (y_i-\bar{y})^2}, &
 
 \paragraph{Cách kiểm tra.} So sai số train với sai số validation (khoảng cách lớn gợi ý quá khớp; cả hai cùng cao gợi ý dưới khớp), thay đổi siêu tham số rồi xem validation, hoặc vẽ đường cong học (\texttt{learning\_curve}). Siêu tham số có thể dò có hệ thống bằng \texttt{GridSearchCV} hoặc \texttt{RandomizedSearchCV} với cross-validation.
 
-\paragraph{Tình trạng của đề tài.} Báo cáo \emph{chưa} tính sai số trên tập train nên không thể kết luận trực tiếp mô hình nào quá khớp hay dưới khớp. Hai quan sát gián tiếp: sai số test sát sai số validation (MAE 156,203 so với 154,865), nên bước chọn mô hình không gây lệch lớn; Ridge có MAE validation cao hơn Random Forest 49\% (231,160 so với 154,865), gợi ý một mô hình tuyến tính là quá đơn giản cho bài toán này, nhưng chỉ khi có sai số train của Ridge mới khẳng định được là dưới khớp. Random Forest vốn luôn có sai số train thấp hơn nhiều so với sai số trên dữ liệu mới, nên chênh lệch đó tự nó không phải bằng chứng xấu. Các siêu tham số hiện đặt thủ công, chưa dò (mục~\ref{sec:hanche}).
+\paragraph{Tình trạng của đề tài.} Kết quả kiểm tra thực tế nằm ở mục~\ref{sec:fitcheck}. Tóm tắt: Ridge có sai số train và validation gần bằng nhau và đều cao, nên dưới khớp; Random Forest có sai số train thấp hơn validation khoảng 2 lần, tức có khoảng cách quá khớp nhưng vẫn là mô hình tốt nhất trên validation. Siêu tham số vẫn đặt thủ công, chưa dò bằng kiểm định chéo (mục~\ref{sec:hanche}).
 
 \section{Tổng hợp thành phần scikit-learn trong đề tài}\label{sec:tonghop}
 \begin{table}[H]
@@ -131,10 +156,3 @@ Thành phần & Vai trò & Tham số đã đặt \\
 \end{tabular}
 \nguon{\texttt{train\_model.py}, các hàm \texttt{build\_preprocessor}, \texttt{build\_estimator}, \texttt{evaluate} và \texttt{main}.}
 \end{table}
-
-\begin{thebibliography}{9}
-\bibitem{sklearn-guide} scikit-learn developers. \emph{scikit-learn User Guide}. \url{https://scikit-learn.org/stable/user_guide.html}.
-\bibitem{pedregosa2011} Pedregosa, F. và cs. Scikit-learn: Machine Learning in Python. \emph{Journal of Machine Learning Research}, 12, 2825--2830, 2011.
-\bibitem{hoerl1970} Hoerl, A. E., Kennard, R. W. Ridge regression: biased estimation for nonorthogonal problems. \emph{Technometrics}, 12(1), 55--67, 1970.
-\bibitem{breiman2001} Breiman, L. Random forests. \emph{Machine Learning}, 45(1), 5--32, 2001.
-\end{thebibliography}

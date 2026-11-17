@@ -178,11 +178,21 @@ def main():
 
 # Chon mo hinh bang validation MAE, khong chon theo tap test.
     validation_rows = []
+    fit_check_rows = []
     for name, estimator in models.items():
         print(f"Validation {name} ...")
         estimator.fit(X_train, y_train)
         val_prediction = estimator.predict(X_val)
         validation_rows.append({"Model": name, **evaluate(y_val, val_prediction)})
+# Sai số trên chính tập train, đặt cạnh validation để kiểm tra quá khớp / dưới khớp.
+        train_metrics = evaluate(y_train, estimator.predict(X_train))
+        val_metrics = evaluate(y_val, val_prediction)
+        fit_check_rows.append({
+            "Model": name, "Eval_set": "validation",
+            "MAE_train": train_metrics["MAE_AUD"], "MAE_eval": val_metrics["MAE_AUD"],
+            "RMSE_train": train_metrics["RMSE_AUD"], "RMSE_eval": val_metrics["RMSE_AUD"],
+            "R2_train": train_metrics["R2"], "R2_eval": val_metrics["R2"],
+        })
 
     validation_metrics = pd.DataFrame(validation_rows).sort_values("MAE_AUD").reset_index(drop=True)
     best_name = str(validation_metrics.iloc[0]["Model"])
@@ -194,6 +204,14 @@ def main():
     best_model.fit(X_train_full, y_train_full)
     best_predictions = best_model.predict(X_test)
     best_metrics = evaluate(y_test, best_predictions)
+# Mô hình đã chọn sau khi huấn luyện lại trên train gộp validation: sai số train gộp so với test.
+    final_train_metrics = evaluate(y_train_full, best_model.predict(X_train_full))
+    fit_check_rows.append({
+        "Model": f"{best_name} (huấn luyện lại trên train gộp validation)", "Eval_set": "test",
+        "MAE_train": final_train_metrics["MAE_AUD"], "MAE_eval": best_metrics["MAE_AUD"],
+        "RMSE_train": final_train_metrics["RMSE_AUD"], "RMSE_eval": best_metrics["RMSE_AUD"],
+        "R2_train": final_train_metrics["R2"], "R2_eval": best_metrics["R2"],
+    })
 
     baseline = DummyRegressor(strategy="median")
     baseline.fit(X_train_full.iloc[:, [0]], y_train_full)
@@ -210,6 +228,11 @@ def main():
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Cột *_eval là sai số trên tập chưa dùng để học (cột Eval_set cho biết là validation hay test).
+    fit_check = pd.DataFrame(fit_check_rows)
+    fit_check["MAE_eval_chia_MAE_train"] = fit_check["MAE_eval"] / fit_check["MAE_train"]
+    fit_check.to_csv(OUTPUT_DIR / "model_fit_check.csv", index=False, encoding="utf-8-sig")
 
     joblib.dump(best_model, MODEL_DIR / "best_pipeline.joblib")
     metrics.to_csv(OUTPUT_DIR / "model_metrics.csv", index=False, encoding="utf-8-sig")

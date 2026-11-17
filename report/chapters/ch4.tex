@@ -1,46 +1,24 @@
-\chapter{Phân tích thống kê}\label{ch:phantich}
+\chapter{Phân tích và trực quan hóa dữ liệu}\label{ch:phantich}\label{ch:trucquan}
 
-Chương này trình bày bảy phép phân tích trên dữ liệu đã làm sạch (13,580 dòng), mỗi phép gồm \emph{mục đích}, \emph{phương pháp}, \emph{kết quả} và \emph{diễn giải}. Các bảng \texttt{price\_summary}, \texttt{price\_by\_type}, \texttt{price\_by\_region}, \texttt{price\_by\_rooms}, \texttt{top\_suburbs}, \texttt{price\_distance\_corr} và \texttt{price\_by\_sale\_month} do \texttt{pipeline.py} ghi vào \texttt{outputs/}; các số còn lại do hàm \texttt{build\_report\_metrics()} ghi vào \texttt{outputs/report\_metrics.csv}, truy theo mã số liệu. Giá tính bằng đô la Úc (AUD), là giá danh nghĩa, không điều chỉnh lạm phát. Chương được giữ ngắn vì trọng tâm của báo cáo là phần mô hình (Chương~\ref{ch:lythuyet} và~\ref{ch:mohinh}).
+Chương này trình bày bảy phép phân tích trên dữ liệu đã làm sạch (13,580 dòng) cùng năm biểu đồ thuộc năm dạng khác nhau, chỉ giữ các kết quả phục vụ phần mô hình. Mỗi phép gồm mục đích, phương pháp, kết quả và diễn giải. Các bảng \texttt{price\_*}, \texttt{top\_suburbs}, \texttt{price\_distance\_corr} và các biểu đồ \texttt{01\_*.png} đến \texttt{05\_*.png} do \texttt{pipeline.py} ghi vào \texttt{outputs/}; các số còn lại do \texttt{build\_report\_metrics()} ghi vào \texttt{outputs/report\_metrics.csv}, truy theo mã. Giá tính bằng đô la Úc (AUD), là giá danh nghĩa. \label{sec:nguyentac}\label{sec:bieudo}\label{sec:groupby}Mỗi biểu đồ có tiêu đề, nhãn trục và đơn vị; dạng biểu đồ chọn theo bản chất dữ liệu, và giá tổng hợp theo nhóm bằng trung vị vì giá lệch phải.
 
-\section{Thống kê mô tả}\label{sec:mota}
+\section{Phân phối của giá}\label{sec:mota}\label{sec:p1}
+\paragraph{Mục đích và phương pháp.} Xác định giá lệch đến mức nào để chọn cách biểu diễn khi mô hình hóa; dùng \texttt{describe()}, phân vị, độ lệch (\texttt{skew}) và hệ số biến thiên.
+\paragraph{Kết quả.} Giá trung bình 1,075,684, trung vị 903,000, nhỏ nhất 85,000, lớn nhất 9,000,000; độ lệch 2.24 và còn 0.18 khi lấy logarit; hệ số biến thiên 0.59 (\texttt{outputs/price\_summary.csv}; \bs{L04, P01}).
 
-\subsection{Phép 1. Phân phối của giá}\label{sec:p1}
-\paragraph{Mục đích.} Xác định giá tập trung ở đâu, lệch đến mức nào, để chọn cách biểu diễn giá khi mô hình hóa.
-\paragraph{Phương pháp.} Dùng \texttt{describe()} cho \texttt{Price} (\texttt{pipeline.py}), kèm phân vị, độ lệch (\texttt{skew}) và hệ số biến thiên tính trong \texttt{build\_report\_metrics()}.
-
-\begin{table}[H]
+\begin{figure}[H]
 \centering
-\caption{Thống kê mô tả của giá nhà (AUD)}\label{tab:mota-gia}
-\small
-\begin{tabular}{@{}lr lr@{}}
-\toprule
-Chỉ số & Giá trị & Chỉ số & Giá trị \\
-\midrule
-Số giao dịch & 13,580 & Phân vị 10\% & 480,000 \\
-Trung bình & 1,075,684 & Phân vị 90\% & 1,850,000 \\
-Độ lệch chuẩn & 639,311 & Phân vị 99\% & 3,338,150 \\
-Nhỏ nhất & 85,000 & Tứ phân vị Q1 & 650,000 \\
-Lớn nhất & 9,000,000 & Trung vị & 903,000 \\
-Độ lệch (skew) & 2.24 & Tứ phân vị Q3 & 1,330,000 \\
-Độ lệch của log(giá) & 0.18 & Hệ số biến thiên & 0.59 \\
-\bottomrule
-\end{tabular}
-\nguon{\texttt{outputs/price\_summary.csv} (số giao dịch, trung bình, độ lệch chuẩn, nhỏ nhất, lớn nhất, Q1, trung vị, Q3); \bs{L04, P01} (phân vị, độ lệch, hệ số biến thiên).}
-\end{table}
+\includegraphics[width=0.72\linewidth]{01_price_distribution.png}
+\caption{Phân phối giá bán nhà (histogram 45 khoảng kèm đường mật độ)}\label{fig:hist}
+\nguon{\texttt{outputs/01\_price\_distribution.png}; số liệu kèm theo: \bs{P09}.}
+\end{figure}
 
-\paragraph{Diễn giải.} Giá trung bình cao hơn trung vị 19\% và độ lệch 2.24 cho thấy phân phối lệch phải (Hình~\ref{fig:hist}). Vì vậy trung vị phù hợp hơn trung bình để so sánh, và logarit (độ lệch còn 0.18) được dùng làm biến mục tiêu của Random Forest (mục~\ref{sec:ttr}). Trước khi loại ngoại lai, \texttt{Landsize} trung bình là 558.4 m\textsuperscript{2} (lớn nhất 433,014), sau khi loại là 478.3 trong khi trung vị gần như không đổi (440 và 439) (\bs{P02}).
+\paragraph{Diễn giải.} Trung bình cao hơn trung vị 19\% và đuôi phải kéo dài đến 9 triệu cho thấy phân phối lệch phải; 92.2\% giao dịch dưới 2 triệu (\bs{P09}). Vì vậy báo cáo dùng trung vị để so sánh nhóm, và logarit giá làm biến mục tiêu của Random Forest (mục~\ref{sec:ttr}). Trước khi loại ngoại lai, \texttt{Landsize} trung bình là 558.4 m\textsuperscript{2} (lớn nhất 433,014), sau khi loại là 478.3 trong khi trung vị gần như không đổi (440 và 439) (\bs{P02}).
 
-\section{Nhóm theo loại nhà, vùng, số phòng và suburb}\label{sec:groupby}
-Bốn phép dưới đây dùng \texttt{groupby} kèm lọc và sắp xếp trong \texttt{pipeline.py}:
-\begin{lstlisting}
-df.groupby("Type")["Price"].agg(count="count", mean="mean",
-                                median="median", std="std")
-df.groupby("Suburb")["Price"].agg(count="count", median="median", mean="mean")\
-  .query("count >= 30").sort_values("median", ascending=False).head(10)
-\end{lstlisting}
+\section{Giá theo nhóm (\texttt{groupby})}\label{sec:p2}\label{sec:p3}\label{sec:p4}\label{sec:p5}
+Bốn phép dưới đây nhóm bằng \texttt{groupby}, lọc bằng \texttt{query} và sắp xếp bằng \texttt{sort\_values} trong \texttt{pipeline.py}.
 
-\subsection{Phép 2. Giá theo loại nhà}\label{sec:p2}
-\paragraph{Mục đích và phương pháp.} Đo chênh lệch giá giữa nhà riêng, nhà liền kề và căn hộ bằng cách nhóm theo \texttt{Type}.
+\paragraph{Phép 2. Loại nhà.} Nhóm theo \texttt{Type}. Trung vị nhà riêng 1,080,000, liền kề 846,750, căn hộ 560,000, tức nhà riêng gấp 1.93 lần căn hộ và phân tán nhất (hệ số biến thiên 0.54 so với 0.42 và 0.43) (Bảng~\ref{tab:loainha}, Hình~\ref{fig:typebox}). Căn hộ nhỏ hơn (diện tích xây trung vị 75 m\textsuperscript{2} so với 144 m\textsuperscript{2}) và gần trung tâm hơn (6.9 km so với 10.4 km) (\bs{P03}), điều cần nhớ khi đọc tác động của khoảng cách ở Phép 6.
 
 \begin{table}[H]
 \centering
@@ -58,95 +36,65 @@ Căn hộ (\texttt{u}) & 3,017 & 22.2\% & 560,000 & 605,127 & 0.43 \\
 \nguon{\texttt{outputs/price\_by\_type.csv}; tỷ lệ: \bs{N09}; hệ số biến thiên: \bs{P03}.}
 \end{table}
 
-\paragraph{Diễn giải.} Giá trung vị của nhà riêng gấp 1.93 lần căn hộ. Căn hộ nhỏ hơn (diện tích xây trung vị 75 m\textsuperscript{2} so với 144 m\textsuperscript{2}) và gần trung tâm hơn (6.9 km so với 10.4 km) (\bs{P03}); điều này cần lưu ý khi đọc ảnh hưởng của khoảng cách ở Phép 6.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{02_price_by_type_boxplot.png}
+\caption{Phân phối giá theo loại nhà (\texttt{h}: nhà riêng, \texttt{t}: liền kề, \texttt{u}: căn hộ)}\label{fig:typebox}
+\nguon{\texttt{outputs/02\_price\_by\_type\_boxplot.png}; số liệu: \texttt{outputs/price\_by\_type.csv}.}
+\end{figure}
 
-\subsection{Phép 3. Giá theo vùng}\label{sec:p3}
-\paragraph{Mục đích và phương pháp.} Xác định vùng đắt, vùng rẻ: nhóm theo \texttt{Regionname} (8 vùng), sắp theo trung vị giảm dần, giữ số giao dịch để biết cỡ mẫu.
+\paragraph{Phép 3. Vùng.} Nhóm theo \texttt{Regionname} (8 vùng). Southern Metropolitan đắt nhất (trung vị 1,250,000), gấp 1.6 lần Western Metropolitan (793,000) (\bs{P04}; Hình~\ref{fig:region}). Ba vùng Victoria chỉ có 32 đến 53 giao dịch mỗi vùng nên kém tin cậy, và chênh lệch giữa các vùng còn lẫn với cơ cấu loại nhà.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{03_median_price_by_region.png}
+\caption{Giá trung vị theo vùng, sắp xếp giảm dần}\label{fig:region}
+\nguon{\texttt{outputs/03\_median\_price\_by\_region.png}; số liệu: \texttt{outputs/price\_by\_region.csv}.}
+\end{figure}
+
+\paragraph{Phép 4. Số phòng.} Nhóm theo \texttt{Rooms}, giữ nhóm từ 20 giao dịch. Trung vị tăng từ 385,000 (1 phòng, 681 giao dịch) lên 690,000, 950,000, 1,285,000 và 1,660,000 (5 phòng); nhà 4 phòng đắt gấp 3.3 lần nhà 1 phòng, nhưng mức tăng thêm mỗi phòng giảm dần (+79\%, +38\%, +35\%, +29\%) (\bs{P05}; \texttt{outputs/price\_by\_rooms.csv}).
+
+\paragraph{Phép 5. Suburb.} Nhóm theo \texttt{Suburb}, giữ suburb từ 30 giao dịch (125 trong 314 suburb; \bs{P06}) vì trung vị của suburb ít giao dịch dao động mạnh. Đứng đầu là Albert Park (1,900,000; 69 giao dịch), Canterbury (1,890,000), Middle Park (1,880,000), Balwyn (1,850,000) và Brighton (1,773,500), Albert Park gấp 2.1 lần trung vị chung (\texttt{outputs/top\_suburbs.csv}). Mô hình mã hóa suburb bằng one-hot (314 giá trị) nên các suburb thưa dữ liệu được học kém (mục~\ref{sec:hanche}).
+
+\section{Tương quan với giá}\label{sec:tuongquan}\label{sec:p6}
+\paragraph{Mục đích và phương pháp.} Xác định thuộc tính số liên hệ mạnh nhất với giá và kiểm tra ngoại lai về diện tích có làm sai lệch kết quả không: tính Pearson bằng \texttt{df[cols].corr()} và Spearman (\texttt{method="spearman"}), rồi so Pearson trước và sau khi loại ngoại lai (\texttt{build\_report\_metrics()}; ``trước khi loại'' là \texttt{data/melb\_data.csv} với \texttt{BuildingArea} $\leq$ 0 đặt thành thiếu).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{05_correlation_heatmap.png}
+\caption{Ma trận tương quan Pearson giữa giá và các thuộc tính số}\label{fig:corr}
+\nguon{\texttt{outputs/05\_correlation\_heatmap.png}; giá trị: \bs{P07}.}
+\end{figure}
 
 \begin{table}[H]
 \centering
-\caption{Giá theo vùng, sắp xếp theo trung vị giảm dần (AUD)}\label{tab:vung}
+\caption{Tương quan Pearson với giá trước và sau khi loại ngoại lai về diện tích}\label{tab:nhay}
 \small
-\begin{tabular}{@{}l r r r@{}}
+\begin{tabular}{@{}L{6.0cm} r r L{3.6cm}@{}}
 \toprule
-Vùng (\texttt{Regionname}) & Số giao dịch & Trung vị & Trung bình \\
+Thuộc tính & Trước & Sau & Spearman (sau) \\
 \midrule
-Southern Metropolitan & 4,695 & 1,250,000 & 1,372,963 \\
-Eastern Metropolitan & 1,471 & 1,010,000 & 1,104,080 \\
-South-Eastern Metropolitan & 450 & 850,000 & 922,944 \\
-Northern Metropolitan & 3,890 & 806,250 & 898,171 \\
-Western Metropolitan & 2,948 & 793,000 & 866,421 \\
-Eastern Victoria & 53 & 670,000 & 699,981 \\
-Northern Victoria & 41 & 540,000 & 594,829 \\
-Western Victoria & 32 & 400,000 & 397,523 \\
+\texttt{BuildingArea} (loại 8 dòng $>$ 1,000 m\textsuperscript{2}) & 0.092 & 0.556 & 0.637 \\
+\texttt{Landsize} (loại 26 dòng $>$ 10,000 m\textsuperscript{2}) & 0.038 & 0.132 & 0.329 \\
 \bottomrule
 \end{tabular}
-\nguon{\texttt{outputs/price\_by\_region.csv}.}
-\end{table}
-
-\paragraph{Diễn giải.} Southern Metropolitan đắt nhất (1,250,000), gấp 1.6 lần Western Metropolitan (793,000) (\bs{P04}). Ba vùng Victoria chỉ có 32 đến 53 giao dịch mỗi vùng nên kém tin cậy. Chênh lệch giữa các vùng còn lẫn với cơ cấu loại nhà trong vùng.
-
-\subsection{Phép 4. Giá theo số phòng}\label{sec:p4}
-\paragraph{Mục đích và phương pháp.} Đo mức tăng của giá theo \texttt{Rooms} bằng \texttt{groupby}, giữ các nhóm từ 20 giao dịch.
-\paragraph{Kết quả và diễn giải.} Trung vị tăng từ 385,000 (1 phòng, 681 giao dịch) lên 690,000 (2 phòng), 950,000 (3 phòng), 1,285,000 (4 phòng) và 1,660,000 (5 phòng); nhà 4 phòng đắt gấp 3.3 lần nhà 1 phòng. Mức tăng thêm mỗi phòng giảm dần (+79\%, +38\%, +35\%, +29\%) (\bs{P05}; \texttt{outputs/price\_by\_rooms.csv}). Số phòng gắn với loại nhà nên một phần mức tăng là chênh lệch giữa hai loại nhà.
-
-\subsection{Phép 5. Suburb có giá trung vị cao}\label{sec:p5}
-\paragraph{Mục đích và phương pháp.} Xác định các suburb đắt nhất. Nhóm theo \texttt{Suburb}, giữ suburb từ 30 giao dịch (\texttt{query("count >= 30")}) vì trung vị của suburb ít giao dịch dao động mạnh; trong 314 suburb có 125 suburb đạt ngưỡng (\bs{P06}).
-\paragraph{Kết quả và diễn giải.} Năm suburb đứng đầu là Albert Park (1,900,000; 69 giao dịch), Canterbury (1,890,000), Middle Park (1,880,000), Balwyn (1,850,000) và Brighton (1,773,500) (\texttt{outputs/top\_suburbs.csv}). Albert Park gấp 2.1 lần trung vị chung (903,000). Mô hình mã hóa suburb bằng one-hot (314 giá trị) nên các suburb thưa dữ liệu được học kém (mục~\ref{sec:hanche}).
-
-\section{Tương quan và thời gian}\label{sec:tuongquan}
-
-\subsection{Phép 6. Tương quan Pearson và độ nhạy với ngoại lai}\label{sec:p6}
-\paragraph{Mục đích.} Xác định thuộc tính số liên hệ mạnh nhất với giá, và kiểm tra ngoại lai về diện tích có làm sai lệch kết quả không.
-\paragraph{Phương pháp.} Tính ma trận Pearson bằng \texttt{df[cols].corr()} và tương quan hạng Spearman (\texttt{method="spearman"}, ít bị ngoại lai ảnh hưởng). Độ nhạy được kiểm tra bằng cách so Pearson trước và sau khi loại ngoại lai; các phép kiểm tra thêm nằm trong \texttt{build\_report\_metrics()}. ``Trước khi loại'' là \texttt{data/melb\_data.csv} với \texttt{BuildingArea} $\leq$ 0 đặt thành thiếu.
-
-\begin{table}[H]
-\centering
-\caption{Tương quan của các thuộc tính số với giá (sắp theo $|$Pearson$|$ giảm dần)}\label{tab:tuongquan}
-\small
-\begin{tabular}{@{}l r r@{}}
-\toprule
-Thuộc tính & Pearson & Spearman \\
-\midrule
-\texttt{BuildingArea} & 0.556 & 0.637 \\
-\texttt{Rooms} & 0.497 & 0.540 \\
-\texttt{Bedroom2} & 0.476 & 0.524 \\
-\texttt{Bathroom} & 0.469 & 0.429 \\
-\texttt{YearBuilt} & $-$0.332 & $-$0.368 \\
-\texttt{Car} & 0.239 & 0.288 \\
-\texttt{Distance} & $-$0.163 & $-$0.130 \\
-\texttt{Landsize} & 0.132 & 0.329 \\
-\texttt{Propertycount} & $-$0.042 & $-$0.011 \\
-\bottomrule
-\end{tabular}
-\nguon{Pearson của \texttt{BuildingArea}, \texttt{Rooms}, \texttt{Landsize}, \texttt{Distance}: \texttt{outputs/price\_distance\_corr.csv}; các giá trị còn lại: \bs{P07}.}
-\end{table}
-
-\begin{table}[H]
-\centering
-\caption{Tương quan Pearson trước và sau khi loại ngoại lai về diện tích}\label{tab:nhay}
-\small
-\begin{tabular}{@{}L{6.4cm} r L{4.6cm}@{}}
-\toprule
-Phép tính & Giá trị & Ghi chú \\
-\midrule
-\texttt{BuildingArea}, trước khi loại & 0.092 & Có dòng 44,515 m\textsuperscript{2} \\
-\texttt{BuildingArea}, sau khi loại & 0.556 & Loại 8 dòng $>$ 1,000 \\
-\texttt{Landsize}, trước khi loại & 0.038 & Có dòng 433,014 m\textsuperscript{2} \\
-\texttt{Landsize}, sau khi loại & 0.132 & Loại 26 dòng $>$ 10,000 \\
-\bottomrule
-\end{tabular}
-\nguon{\bs{P07}.}
+\nguon{\bs{P07}; \texttt{outputs/price\_distance\_corr.csv} (một phần).}
 \end{table}
 
 \paragraph{Diễn giải.}
 \begin{itemize}[nosep]
-  \item \textbf{Liên hệ mạnh nhất:} \texttt{BuildingArea} (0.556), \texttt{Rooms} (0.497), \texttt{Bedroom2} (0.476), \texttt{Bathroom} (0.469). \texttt{Bedroom2} và \texttt{Rooms} gần như cùng một thông tin (tương quan 0.944) (\bs{N06, P07}).
-  \item \textbf{Ngoại lai làm hệ số bị đánh giá thấp:} tám dòng trên 1,000 m\textsuperscript{2} kéo Pearson của \texttt{BuildingArea} xuống 0.092; loại chúng thì hệ số lên 0.556, gần Spearman (0.637, không đổi vì dựa trên thứ hạng).
-  \item \textbf{\texttt{Distance} ($-$0.163)} yếu hơn kỳ vọng khi gộp chung, nhưng riêng nhà riêng là $-$0.329 và căn hộ gần như không phụ thuộc ($-$0.051) (\bs{P07}). Giải thích hợp lý là căn hộ rẻ hơn và gần trung tâm hơn, nhưng đây là giả thuyết chưa kiểm định.
-  \item Các đầu vào tương quan với nhau (\texttt{Rooms}--\texttt{Bathroom} 0.594), và tương quan không chứng minh quan hệ nhân quả.
+  \item Liên hệ mạnh nhất với giá: \texttt{BuildingArea} (0.556), \texttt{Rooms} (0.497), \texttt{Bedroom2} (0.476), \texttt{Bathroom} (0.469); \texttt{YearBuilt} ($-$0.332) và \texttt{Distance} ($-$0.163) tương quan âm. \texttt{Bedroom2} và \texttt{Rooms} gần như cùng một thông tin (0.944) (\bs{N06, P07}).
+  \item Ngoại lai làm hệ số bị đánh giá thấp: tám dòng trên 1,000 m\textsuperscript{2} kéo Pearson của \texttt{BuildingArea} xuống 0.092; loại chúng thì hệ số lên 0.556, gần Spearman (0.637, không đổi vì dựa trên thứ hạng).
+  \item \texttt{Distance} yếu khi gộp chung nhưng riêng nhà riêng là $-$0.329 và căn hộ gần như không phụ thuộc ($-$0.051) (\bs{P07}; Hình~\ref{fig:distance}). Giải thích khả dĩ là căn hộ rẻ hơn và gần trung tâm hơn; đây là giả thuyết chưa kiểm định. Pearson chỉ đo quan hệ tuyến tính, không chứng minh nhân quả.
 \end{itemize}
 
-\subsection{Phép 7. Giá theo tháng bán}\label{sec:p7}
-\paragraph{Mục đích và phương pháp.} Quan sát giá theo thời gian bán: nhóm theo \texttt{SaleMonth} (1 đến 12) và tính trung vị (\texttt{outputs/price\_by\_sale\_month.csv}). Các tháng 2 đến 9 gồm cả hai năm, các tháng 10 đến 12 chỉ có năm 2016, và không có giao dịch tháng 3/2016 và tháng 1/2017.
-\paragraph{Kết quả và diễn giải.} Tháng 1 chỉ có 2 giao dịch nên bỏ qua. Ở các tháng còn lại trung vị dao động quanh 890,000 đến 970,000, trừ tháng 7 thấp rõ rệt (773,500) (\bs{P08}). Điểm trũng này cần đọc thận trọng: ở tháng 7/2017 chỉ 19.3\% giao dịch thuộc Southern Metropolitan, vùng đắt nhất (tháng 6/2017: 29.5\%, tháng 8/2017: 30.0\%), nên cơ cấu giao dịch thiên về vùng rẻ hơn và giá thấp chưa chắc là giá giảm. Theo năm, trung vị gần như đi ngang: 900,000 (2016) và 910,000 (2017 đến 23/09), tăng khoảng 1.1\% (\bs{P08}). Dữ liệu chỉ dài 19 tháng và có khoảng trống, nên kết luận chỉ có tính mô tả.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{04_price_vs_distance.png}
+\caption{Khoảng cách đến trung tâm (CBD) và giá bán, mẫu ngẫu nhiên 4,000 điểm}\label{fig:distance}
+\nguon{\texttt{outputs/04\_price\_vs\_distance.png}; hệ số tương quan: \bs{P07}; tỷ lệ theo khoảng cách: \bs{P09}.}
+\end{figure}
+Trong 1,007 giao dịch trên 2 triệu AUD, 97.2\% nằm trong 15 km; trong 731 giao dịch ngoài 20 km, 97.9\% dưới 1.5 triệu AUD (\bs{P09}).
+
+\section{Theo thời gian}\label{sec:xuhuong}\label{sec:p7}
+\paragraph{Phép 7. Giá theo tháng bán.} Nhóm theo \texttt{SaleMonth} và tính trung vị (\texttt{outputs/price\_by\_sale\_month.csv}). Trừ tháng 1 (2 giao dịch), trung vị dao động quanh 890,000 đến 970,000, trừ tháng 7 thấp rõ rệt (773,500) (\bs{P08}). Điểm trũng này cần đọc thận trọng: ở tháng 7/2017 chỉ 19.3\% giao dịch thuộc Southern Metropolitan (tháng 6: 29.5\%, tháng 8: 30.0\%), nên cơ cấu thiên về vùng rẻ hơn và giá thấp chưa chắc là giá giảm. Theo năm, trung vị gần như đi ngang: 900,000 (2016) và 910,000 (2017 đến 23/09), tăng khoảng 1.1\% (\bs{P08}). Dữ liệu chỉ dài 19 tháng và có khoảng trống nên kết luận chỉ có tính mô tả.
