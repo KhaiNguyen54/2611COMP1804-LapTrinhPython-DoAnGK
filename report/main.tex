@@ -15,7 +15,7 @@
 \usepackage{fancyhdr}
 \usepackage{listings}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
 \usepackage[unicode,hidelinks,pdftitle={Báo cáo phân tích dữ liệu giá nhà Melbourne}]{hyperref}
 \usepackage{xurl}
 
@@ -99,6 +99,7 @@
 \newcommand{\GiangVien}{{ThS. Lương Trần Hy Hiến}}
 \newcommand{\NamHoc}{2026 - 2027}
 
+\emergencystretch=2em
 \begin{document}
 \pagenumbering{gobble}
 \input{chapters/bia}
@@ -116,9 +117,19 @@
 \input{chapters/ch2}
 \input{chapters/ch3}
 \input{chapters/ch4}
-\input{chapters/ch5}
+\input{chapters/ch_sklearn}
 \input{chapters/ch6}
 \input{chapters/ch7}
+
+\begin{thebibliography}{9}
+\addcontentsline{toc}{chapter}{Tài liệu tham khảo}
+\bibitem{melbourne-kaggle} Pino, T. (dansbecker). \emph{Melbourne Housing Snapshot}. Kaggle, CC BY-NC-SA 4.0. \url{https://www.kaggle.com/datasets/dansbecker/melbourne-housing-snapshot}.
+\bibitem{sklearn-guide} scikit-learn developers. \emph{scikit-learn User Guide}. \url{https://scikit-learn.org/stable/user_guide.html}.
+\bibitem{pedregosa2011} Pedregosa, F. và cs. Scikit-learn: Machine Learning in Python. \emph{Journal of Machine Learning Research}, 12, 2825--2830, 2011.
+\bibitem{buitinck2013} Buitinck, L. và cs. API design for machine learning software: experiences from the scikit-learn project. \emph{ECML PKDD Workshop: Languages for Data Mining and Machine Learning}, 108--122, 2013. arXiv:1309.0238.
+\bibitem{hoerl1970} Hoerl, A. E., Kennard, R. W. Ridge regression: biased estimation for nonorthogonal problems. \emph{Technometrics}, 12(1), 55--67, 1970.
+\bibitem{breiman2001} Breiman, L. Random forests. \emph{Machine Learning}, 45(1), 5--32, 2001.
+\end{thebibliography}
 
 \appendix
 \addtocontents{toc}{\protect\renewcommand{\protect\cftchappresnum}{Phụ lục }}

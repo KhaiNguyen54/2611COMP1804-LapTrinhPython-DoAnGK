@@ -1,0 +1,158 @@
+\chapter{Cơ sở lý thuyết scikit-learn}\label{ch:lythuyet}
+
+Chương này giới thiệu tổng quan về scikit-learn rồi giải thích các thành phần mà \texttt{train\_model.py} sử dụng: vì sao được chọn, hoạt động thế nào và tham số nào đã đặt. Phần lý thuyết tổng quát lấy từ tài liệu scikit-learn \cite{sklearn-guide} và các công trình gốc \cite{pedregosa2011,hoerl1970,breiman2001}; phần gắn với đề tài dẫn tên hàm, biến trong mã nguồn và số liệu có mã truy nguồn. Bảng~\ref{tab:thanhphan} ở cuối chương tổng hợp toàn bộ thành phần.
+
+\section{Tổng quan về scikit-learn}\label{sec:tongquan}
+scikit-learn là thư viện Python mã nguồn mở (giấy phép BSD) cho học máy cổ điển, xây dựng trên NumPy, SciPy và Matplotlib \cite{pedregosa2011}. Thư viện cung cấp thuật toán hồi quy, phân loại, phân cụm và giảm chiều, cùng các công cụ tiền xử lý, chọn mô hình và đánh giá, và không nhắm tới học sâu. Các nguyên tắc thiết kế gồm: giao diện nhất quán giữa các đối tượng, thuộc tính đã học có thể kiểm tra, ghép các thành phần thành chuỗi, và tham số mặc định hợp lý \cite{buitinck2013}.
+
+\begin{table}[H]
+\centering
+\caption{Các mô-đun scikit-learn dùng trong đề tài}\label{tab:modun}
+\small
+\begin{tabular}{@{}L{3.2cm} L{4.4cm} L{5.0cm}@{}}
+\toprule
+Mô-đun & Chức năng chung & Dùng trong đề tài \\
+\midrule
+\texttt{impute} & Điền ô thiếu & \texttt{SimpleImputer} \\
+\texttt{preprocessing} & Chuẩn hóa, mã hóa & \texttt{StandardScaler}, \texttt{OneHotEncoder} \\
+\texttt{compose} & Xử lý theo nhóm cột, biến đổi biến mục tiêu & \texttt{ColumnTransformer}, \texttt{Transformed}\allowbreak\texttt{TargetRegressor} \\
+\texttt{pipeline} & Ghép các bước thành một đối tượng & \texttt{Pipeline} \\
+\texttt{linear\_model} & Mô hình tuyến tính & \texttt{Ridge} \\
+\texttt{ensemble} & Tập hợp nhiều mô hình & \texttt{RandomForest}\allowbreak\texttt{Regressor} \\
+\texttt{dummy} & Mô hình cơ sở không dùng thuộc tính & \texttt{DummyRegressor} \\
+\texttt{model\_selection} & Chia tập, kiểm định chéo, dò tham số & \texttt{train\_test\_split} \\
+\texttt{metrics} & Chỉ số đánh giá & \texttt{mean\_absolute\_error}, \texttt{mean\_squared\_error}, \texttt{r2\_score} \\
+\bottomrule
+\end{tabular}
+\nguon{\cite{sklearn-guide}; \texttt{train\_model.py} (các câu lệnh \texttt{import}).}
+\end{table}
+
+\section{Giao diện thống nhất: estimator, transformer, predictor}\label{sec:api}
+Mọi đối tượng trong scikit-learn tuân theo một số giao diện chung, nhờ đó các thành phần ghép được với nhau.
+\begin{itemize}[nosep]
+  \item \textbf{Estimator} là đối tượng học từ dữ liệu qua phương thức \texttt{fit(X, y)}. Những gì học được (trung vị, trung bình, hệ số, cây) lưu trong các thuộc tính kết thúc bằng dấu gạch dưới, ví dụ \texttt{coef\_}.
+  \item \textbf{Transformer} biến đổi dữ liệu qua \texttt{transform(X)}; \texttt{fit\_transform} gộp hai bước. \texttt{SimpleImputer}, \texttt{StandardScaler} và \texttt{OneHotEncoder} là transformer.
+  \item \textbf{Predictor} dự đoán qua \texttt{predict(X)}. \texttt{Ridge}, \texttt{RandomForest}\allowbreak\texttt{Regressor} và \texttt{DummyRegressor} là predictor.
+\end{itemize}
+Cần phân biệt \emph{tham số học được} (hệ số của Ridge, cấu trúc cây) với \emph{siêu tham số} do người dùng đặt trước khi học (\texttt{alpha}, \texttt{n\_estimators}). Nhờ cùng giao diện, vòng lặp so sánh mô hình trong \texttt{main()} của \texttt{train\_model.py} chỉ viết một lần: với mỗi mô hình trong từ điển \texttt{models}, gọi \texttt{fit} trên tập train, \texttt{predict} trên tập validation rồi đưa kết quả vào hàm \texttt{evaluate()}, áp dụng được cho cả Ridge và Random Forest.
+
+\section{Rò rỉ dữ liệu, Pipeline và ColumnTransformer}\label{sec:pipeline}
+\paragraph{Rò rỉ dữ liệu.} Nếu trung vị dùng để điền thiếu hoặc độ lệch chuẩn dùng để chuẩn hóa được tính trên \emph{toàn bộ} dữ liệu thì thông tin của tập validation và test lọt vào bước huấn luyện, làm sai số báo cáo lạc quan hơn thực tế. Quy tắc là mọi thống kê chỉ học từ tập train rồi áp dụng nguyên giá trị đó cho tập còn lại.
+
+\paragraph{Pipeline.} \texttt{Pipeline} xếp các bước (transformer, rồi predictor ở cuối) thành một estimator duy nhất. Gọi \texttt{fit} trên pipeline là học từng bước trên dữ liệu được đưa vào; gọi \texttt{predict} áp dụng các tham số đã học. Vì pipeline được huấn luyện chỉ trên tập train (hoặc train gộp validation ở lần huấn luyện cuối), việc điền thiếu và chuẩn hóa tự động không rò rỉ. Ngoài ra pipeline đảm bảo lúc dự đoán dữ liệu mới đi qua đúng các bước đã dùng khi huấn luyện.
+
+\paragraph{ColumnTransformer.} Cột số và cột phân loại cần xử lý khác nhau nên \texttt{ColumnTransformer} áp dụng từng pipeline con lên từng nhóm cột rồi ghép kết quả. Trong \texttt{build\_preprocessor()}, \texttt{remainder="drop"} loại các cột không khai báo (\texttt{Address}, \texttt{SellerG}, \texttt{Date}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=7mm and 9mm, every node/.style={font=\small},
+  box/.style={draw,rounded corners=2pt,align=center,minimum height=8mm,inner sep=4pt},
+  arr/.style={-{Stealth[length=2mm]}}]
+\node[box] (x) {Dữ liệu\\\footnotesize 23 đặc trưng};
+\node[box,above right=2mm and 12mm of x] (n1) {Số: điền\\\footnotesize trung vị};
+\node[box,right=of n1] (n2) {Số: chuẩn hóa\\\footnotesize \texttt{StandardScaler}};
+\node[box,below right=2mm and 12mm of x] (c1) {Phân loại: điền\\\footnotesize giá trị phổ biến nhất};
+\node[box,right=of c1] (c2) {Phân loại: one-hot\\\footnotesize \texttt{OneHotEncoder}};
+\node[box,right=14mm of $(n2.east)!0.5!(c2.east)$] (m) {Mô hình\\\footnotesize Ridge / RF};
+\draw[arr] (x.east) -- ++(4mm,0) |- (n1.west);
+\draw[arr] (x.east) -- ++(4mm,0) |- (c1.west);
+\draw[arr] (n1) -- (n2);
+\draw[arr] (c1) -- (c2);
+\draw[arr] (n2.east) -- ++(4mm,0) |- (m.west);
+\draw[arr] (c2.east) -- ++(4mm,0) |- (m.west);
+\end{tikzpicture}
+\caption{Luồng xử lý trong \texttt{build\_preprocessor()} và mô hình (\texttt{Pipeline} bên ngoài, \texttt{ColumnTransformer} ở giữa)}\label{fig:luong}
+\nguon{\texttt{train\_model.py}, hàm \texttt{build\_preprocessor()} và \texttt{build\_estimator()}.}
+\end{figure}
+
+\section{Các bộ tiền xử lý đã dùng}\label{sec:tienxuly}
+\paragraph{SimpleImputer.} Thay ô thiếu bằng một thống kê học từ tập train. Đề tài dùng \texttt{strategy="median"} cho cột số và \texttt{"most\_frequent"} cho cột phân loại. Trung vị được chọn vì ít chịu ảnh hưởng của giá trị cực lớn hơn trung bình (xem Phép 1, Chương~\ref{ch:phantich}). Điền thiếu làm mất thông tin rằng ô vốn thiếu, nên các cột có thiếu đáng kể (\texttt{BuildingArea}, \texttt{YearBuilt}, \texttt{CouncilArea}, \texttt{Car}) được giữ thêm cờ \texttt{*\_was\_missing} từ bước làm sạch.
+
+\paragraph{StandardScaler.} Biến đổi mỗi cột số thành
+\[ z = \frac{x - \mu}{\sigma}, \]
+với $\mu$, $\sigma$ là trung bình và độ lệch chuẩn của tập train. Bước này cần cho Ridge vì mức phạt $\alpha\lVert w\rVert^2$ (mục~\ref{sec:ridge}) phụ thuộc vào thang đo của cột: cột đo bằng mét vuông (hàng trăm) và cột số phòng (một chữ số) sẽ bị phạt không đồng đều nếu không chuẩn hóa. Với Random Forest, việc chuẩn hóa không làm đổi kết quả vì cây chỉ so sánh thứ tự giá trị; pipeline dùng chung nên vẫn chuẩn hóa.
+
+\paragraph{OneHotEncoder.} Mỗi giá trị của biến phân loại thành một cột nhị phân (1 nếu dòng thuộc giá trị đó, 0 nếu không), tránh việc gán thứ tự giả cho các giá trị như tên suburb. Cái giá là số cột tăng theo số giá trị khác nhau: \texttt{Suburb} có 314 giá trị (\bs{P06}). Tham số \texttt{handle\_unknown="ignore"} làm giá trị chỉ xuất hiện ở tập test mã hóa thành toàn số 0 thay vì gây lỗi.
+
+\section{Biến mục tiêu log: TransformedTargetRegressor}\label{sec:ttr}
+Giá lệch phải (độ lệch 2.24; \bs{P01}), còn logarit giá gần đối xứng (độ lệch 0.18). \texttt{TransformedTargetRegressor} học trên $\log(1+y)$ (\texttt{func=np.log1p}) rồi đổi dự đoán về giá gốc bằng hàm ngược $\exp(\hat{u})-1$ (\texttt{inverse\_func=np.expm1}); mọi chỉ số vẫn tính bằng AUD. Học trên thang log làm sai số được đo theo tỷ lệ phần trăm hơn là theo số tuyệt đối, nên các căn giá thấp và giá cao được cân nhắc đồng đều hơn.
+
+Có một lưu ý lý thuyết: nếu mô hình dự đoán tốt kỳ vọng của $\log(1+y)$ thì sau khi đổi ngược, kết quả gần với trung vị có điều kiện hơn là trung bình có điều kiện, vì $\exp$ là hàm lồi nên $\exp(\mathrm{E}[u]) \le \mathrm{E}[\exp(u)]$. Điều này có thể góp phần vào xu hướng dự đoán thấp ở nhóm giá cao (mục~\ref{sec:phankhuc}), nhưng báo cáo chưa kiểm chứng riêng nguyên nhân này.
+
+\section{Ridge: hồi quy tuyến tính có phạt}\label{sec:ridge}
+Hồi quy tuyến tính dự đoán $\hat{y} = w_0 + \sum_j w_j x_j$. Ridge chọn hệ số $w$ bằng cách cực tiểu hóa
+\[ \sum_{i=1}^{n}\bigl(y_i - \hat{y}_i\bigr)^2 + \alpha \sum_{j} w_j^2 , \]
+trong đó số hạng thứ hai (phạt L2) kéo các hệ số về gần 0; hệ số chặn $w_0$ không bị phạt \cite{hoerl1970}. $\alpha$ lớn thì mô hình đơn giản hơn (độ chệch tăng, phương sai giảm); $\alpha = 0$ trở về bình phương tối thiểu thông thường. Ridge hữu ích khi các đặc trưng tương quan với nhau, như \texttt{Rooms} và \texttt{Bedroom2} (tương quan 0.944; \bs{P07}), vì nghiệm bình phương tối thiểu khi đó không ổn định.
+
+Đề tài dùng \texttt{Ridge(alpha=10.0, solver="lsqr")}. \texttt{lsqr} là bộ giải lặp, phù hợp khi ma trận đặc trưng có nhiều cột thưa do one-hot. Giá trị $\alpha = 10$ được đặt thủ công, không dò bằng cross-validation (mục~\ref{sec:quaykhop}). Giới hạn của mô hình là tuyến tính: nó không tự học tương tác (ví dụ ảnh hưởng của số phòng khác nhau giữa các suburb) hay quan hệ phi tuyến nếu không thêm đặc trưng tương ứng. Ridge học trên giá gốc (không qua log).
+
+\section{Random Forest: tập hợp các cây quyết định}\label{sec:rf}
+\paragraph{Cây quyết định hồi quy} chia không gian đặc trưng thành các vùng bằng chuỗi câu hỏi dạng ``\texttt{Rooms} $\le$ 3?'' và dự đoán trung bình giá của các dòng train rơi vào cùng một lá. Một cây đủ sâu khớp rất sát dữ liệu train nhưng dao động mạnh khi dữ liệu đổi (phương sai cao).
+
+\paragraph{Random Forest} \cite{breiman2001} huấn luyện $B$ cây, mỗi cây trên một mẫu bootstrap (lấy mẫu có hoàn lại từ tập train), và ở mỗi lần chia chỉ xét một tập con ngẫu nhiên các đặc trưng. Dự đoán là trung bình của các cây:
+\[ \hat{y}(x) = \frac{1}{B}\sum_{b=1}^{B} T_b(x). \]
+Lấy trung bình nhiều cây ít tương quan làm giảm phương sai mà không tăng nhiều độ chệch. Ba siêu tham số đã đặt trong \texttt{train\_model.py}:
+\begin{itemize}[nosep]
+  \item \texttt{n\_estimators=100}: số cây $B$.
+  \item \texttt{min\_samples\_leaf=2}: mỗi lá có ít nhất 2 dòng, hạn chế cây khớp từng dòng riêng lẻ.
+  \item \texttt{max\_features=0.9}: mỗi lần chia xét 90\% số đặc trưng (số thực được hiểu là tỷ lệ).
+\end{itemize}
+Mô hình bắt được quan hệ phi tuyến và tương tác giữa các đặc trưng mà không cần khai báo. Hạn chế: mỗi dự đoán là trung bình của các giá trị giá có trong tập train nên không vượt ra ngoài khoảng giá đã thấy, và mô hình khó ngoại suy ở nhóm giá rất cao. Điều này phù hợp với quan sát giá dự đoán lớn nhất trên test là 4,246,907 trong khi giá thực lớn nhất là 6,500,000 (\bm{M02}); báo cáo không khẳng định đây là nguyên nhân duy nhất.
+
+\section{Chia dữ liệu và vai trò của từng tập}\label{sec:chiatap}
+\texttt{train\_test\_split} chia ngẫu nhiên có cố định hạt giống (\texttt{random\_state=42}) để kết quả tái lập được. Ba tập có ba vai trò:
+\begin{itemize}[nosep]
+  \item \textbf{Train}: học tham số của transformer và mô hình.
+  \item \textbf{Validation}: so sánh các mô hình ứng viên và chọn một mô hình; có thể dùng nhiều lần.
+  \item \textbf{Test}: đánh giá cuối cùng cho mô hình đã chọn, chỉ chấm một lần. Nếu dùng test để chọn mô hình thì sai số báo cáo bị lạc quan.
+\end{itemize}
+Mã chia hai lần với \texttt{test\_size=0.2}: lần một tách test 20\%, lần hai tách validation bằng 20\% phần còn lại, nên tỷ lệ thực là 64\% / 16\% / 20\% chứ không phải 60/20/20 (8,691 / 2,173 / 2,716 dòng; \bm{M06}). Sau khi chọn mô hình, \texttt{main()} huấn luyện lại trên train gộp validation (10,864 dòng) để tận dụng thêm dữ liệu; tập test không được dùng ở bước nào trước đó. Phép chia ngẫu nhiên chưa tính đến thứ tự thời gian của dữ liệu (mục~\ref{sec:hanche}).
+
+\section{Các chỉ số đánh giá và baseline}\label{sec:chiso}
+Gọi $y_i$ là giá thực, $\hat{y}_i$ là giá dự đoán, $n$ là số dòng đánh giá. \texttt{evaluate()} trong \texttt{train\_model.py} tính ba chỉ số đầu từ \texttt{sklearn.metrics}; MAPE do \texttt{build\_model\_error\_metrics()} tính trực tiếp từ \texttt{test\_predictions.csv}.
+\begin{align*}
+\mathrm{MAE} &= \frac{1}{n}\sum_i \lvert y_i-\hat{y}_i\rvert, &
+\mathrm{RMSE} &= \sqrt{\frac{1}{n}\sum_i (y_i-\hat{y}_i)^2},\\
+R^2 &= 1-\frac{\sum_i (y_i-\hat{y}_i)^2}{\sum_i (y_i-\bar{y})^2}, &
+\mathrm{MAPE} &= \frac{1}{n}\sum_i \frac{\lvert y_i-\hat{y}_i\rvert}{y_i}.
+\end{align*}
+\begin{itemize}[nosep]
+  \item MAE có đơn vị AUD, đọc trực tiếp được; chọn làm tiêu chí chọn mô hình.
+  \item RMSE bình phương sai số nên phạt nặng dự đoán lệch lớn; RMSE lớn hơn MAE nhiều nghĩa là sai số tập trung ở một số ít dòng. Ở mô hình được chọn RMSE bằng 1.7 lần MAE (265,501 so với 156,203).
+  \item $R^2$ so sai số của mô hình với sai số của việc luôn đoán $\bar{y}$ (trung bình của chính tập đang đánh giá). $R^2 = 1$ là hoàn hảo, $R^2 < 0$ là kém hơn dự đoán trung bình.
+  \item MAPE đo sai số theo tỷ lệ phần trăm giá thực, giúp so sánh giữa các phân khúc giá khác nhau; nhược điểm là khuếch đại sai số ở căn giá thấp.
+\end{itemize}
+
+\paragraph{Baseline.} \texttt{DummyRegressor(strategy="median")} luôn dự đoán trung vị giá của tập train. Trong các hằng số, trung vị là giá trị làm MAE nhỏ nhất, nên đây là mốc MAE khó thua nhất mà không dùng thuộc tính nào. Baseline có $R^2$ âm ($-$0.0758) vì nó đoán trung vị của train, thấp hơn trung bình của tập test lệch phải (Chương~\ref{ch:mohinh}). Mô hình chỉ có giá trị nếu vượt rõ baseline.
+
+\section{Quá khớp, dưới khớp và những gì báo cáo chưa kiểm tra}\label{sec:quaykhop}
+\paragraph{Định nghĩa.} \emph{Quá khớp} (overfitting) là mô hình học cả nhiễu của tập train: sai số train rất thấp nhưng sai số trên dữ liệu chưa thấy cao hơn nhiều. \emph{Dưới khớp} (underfitting) là mô hình quá đơn giản: sai số cao ở cả train lẫn validation. Mô hình càng phức tạp thì độ chệch giảm và phương sai tăng (đánh đổi chệch--phương sai); mục tiêu là mức phức tạp mà sai số trên dữ liệu chưa thấy thấp nhất.
+
+\paragraph{Cách kiểm tra.} So sai số train với sai số validation (khoảng cách lớn gợi ý quá khớp; cả hai cùng cao gợi ý dưới khớp), thay đổi siêu tham số rồi xem validation, hoặc vẽ đường cong học (\texttt{learning\_curve}). Siêu tham số có thể dò có hệ thống bằng \texttt{GridSearchCV} hoặc \texttt{RandomizedSearchCV} với cross-validation.
+
+\paragraph{Tình trạng của đề tài.} Kết quả kiểm tra thực tế nằm ở mục~\ref{sec:fitcheck}. Tóm tắt: Ridge có sai số train và validation gần bằng nhau và đều cao, nên dưới khớp; Random Forest có sai số train thấp hơn validation khoảng 2 lần, tức có khoảng cách quá khớp nhưng vẫn là mô hình tốt nhất trên validation. Siêu tham số vẫn đặt thủ công, chưa dò bằng kiểm định chéo (mục~\ref{sec:hanche}).
+
+\section{Tổng hợp thành phần scikit-learn trong đề tài}\label{sec:tonghop}
+\begin{table}[H]
+\centering
+\caption{Thành phần scikit-learn được dùng và vị trí trong \texttt{train\_model.py}}\label{tab:thanhphan}
+\small
+\begin{tabular}{@{}L{3.6cm} L{4.4cm} L{4.6cm}@{}}
+\toprule
+Thành phần & Vai trò & Tham số đã đặt \\
+\midrule
+\texttt{train\_test\_split} & Chia train, validation, test & \texttt{test\_size=0.2}, \texttt{random\_state=42}, gọi hai lần \\
+\texttt{SimpleImputer} & Điền ô thiếu & \texttt{median} (số); \texttt{most\_frequent} (phân loại) \\
+\texttt{StandardScaler} & Chuẩn hóa cột số & mặc định \\
+\texttt{OneHotEncoder} & Mã hóa cột phân loại & \texttt{handle\_unknown="ignore"} \\
+\texttt{ColumnTransformer} & Áp dụng xử lý riêng theo nhóm cột & \texttt{remainder="drop"} \\
+\texttt{Pipeline} & Ghép tiền xử lý với mô hình & hai pipeline con và một pipeline ngoài \\
+\texttt{Transformed}\allowbreak\texttt{TargetRegressor} & Học trên log giá, đổi ngược về AUD & \texttt{np.log1p}, \texttt{np.expm1} \\
+\texttt{Ridge} & Hồi quy tuyến tính có phạt L2 & \texttt{alpha=10.0}, \texttt{solver="lsqr"} \\
+\texttt{RandomForest}\allowbreak\texttt{Regressor} & Tập hợp các cây hồi quy & \texttt{n\_estimators=100}, \texttt{min\_samples\_leaf=2}, \texttt{max\_features=0.9}, \texttt{random\_state=42} \\
+\texttt{DummyRegressor} & Baseline & \texttt{strategy="median"} \\
+\texttt{mean\_absolute\_error}, \texttt{mean\_}\allowbreak\texttt{squared\_error}, \texttt{r2\_score} & MAE, RMSE, $R^2$ & trong \texttt{evaluate()} \\
+\bottomrule
+\end{tabular}
+\nguon{\texttt{train\_model.py}, các hàm \texttt{build\_preprocessor}, \texttt{build\_estimator}, \texttt{evaluate} và \texttt{main}.}
+\end{table}

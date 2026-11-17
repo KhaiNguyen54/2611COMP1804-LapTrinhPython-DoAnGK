@@ -17,7 +17,7 @@ Cách thu thập gốc & Cào dữ liệu web (web scraping) các tin đăng bá
 Cách lấy trong dự án & Tải thủ công tệp CSV từ Kaggle và đặt vào \texttt{data/} \\
 \bottomrule
 \end{tabular}
-\nguon{trang bộ dữ liệu trên Kaggle (liên kết trên) và \texttt{README.md} của dự án.}
+\nguon{trang bộ dữ liệu trên Kaggle \cite{melbourne-kaggle} và \texttt{README.md} của dự án.}
 \end{table}
 
 Mỗi dòng của tệp là một giao dịch bán nhà gồm vị trí, thuộc tính căn nhà, giá bán (AUD) và ngày bán. Mọi số liệu trong báo cáo chỉ tính trên tệp này.
@@ -50,7 +50,7 @@ Có 13,256 ô null, nằm ở bốn cột: \texttt{Car} (62), \texttt{BuildingAr
 Dữ liệu trải trên 19 tháng có giao dịch nhưng không liên tục: không có giao dịch tháng 3/2016 và tháng 1/2017; tháng 1 và 2/2016 chỉ có 2 và 26 giao dịch; các tháng còn lại có từ 318 đến 1,536 giao dịch (\bs{N11}). Vì vậy so sánh theo thời gian cần đọc thận trọng (Phép 7).
 
 \section{Từ điển dữ liệu}\label{sec:tudien}
-Bảng~\ref{tab:tudien} mô tả 21 cột của tệp gốc và vai trò của từng cột trong \texttt{train\_model.py}. Tệp không kèm mô tả cột; ý nghĩa theo cách hiểu thông dụng của bộ dữ liệu. Đơn vị m\textsuperscript{2} của \texttt{Landsize} và \texttt{BuildingArea} là suy ra từ phân phối giá trị (Bảng~\ref{tab:mota-so}), không có xác nhận chính thức. Tên \texttt{Lattitude}, \texttt{Longtitude} sai chính tả ngay từ tệp gốc và được giữ nguyên.
+Bảng~\ref{tab:tudien} mô tả 21 cột của tệp gốc và vai trò của từng cột trong \texttt{train\_model.py}. Tệp không kèm mô tả cột; ý nghĩa theo cách hiểu thông dụng của bộ dữ liệu. Đơn vị m\textsuperscript{2} của \texttt{Landsize} và \texttt{BuildingArea} là suy ra từ phân phối giá trị (\bs{P02}), không có xác nhận chính thức. Tên \texttt{Lattitude}, \texttt{Longtitude} sai chính tả ngay từ tệp gốc và được giữ nguyên.
 
 {\small
 \begin{longtable}{@{}l l L{6.6cm} L{3.1cm}@{}}

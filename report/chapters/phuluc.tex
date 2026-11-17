@@ -112,12 +112,13 @@ Kiểm tra chất lượng (Bảng~\ref{tab:kiemtra}, \ref{tab:loi}) & \texttt{o
 Hình~\ref{fig:missing}, \ref{fig:cleaning} & \texttt{pipeline.py}: \texttt{create\_quality\_charts()}, ghi \texttt{outputs/08\_*.png}, \texttt{09\_*.png} & --- \\
 Quy tắc làm sạch (Bảng~\ref{tab:quytac}, \ref{tab:quytac-day-du}, \ref{tab:thieu-truoc-sau}) & \texttt{pipeline.py}: \texttt{clean\_data()} & L01, L02, L03 \\
 Chia tập (Bảng~\ref{tab:chia}) & \texttt{train\_model.py}: \texttt{train\_test\_split} & M06 \\
-Bảng~\ref{tab:mota-gia}, \ref{tab:mota-so} & \texttt{outputs/price\_summary.csv}; \texttt{outputs/melb\_data\_clean.csv} & L04, P01, P02 \\
-Bảng~\ref{tab:loainha}, \ref{tab:vung}, \ref{tab:sophong}, \ref{tab:suburb} & \texttt{outputs/price\_by\_type.csv}, \texttt{price\_by\_region.csv}, \texttt{price\_by\_rooms.csv}, \texttt{top\_suburbs.csv} & N09, N10, P03--P06 \\
-Bảng~\ref{tab:tuongquan}, \ref{tab:nhay}, \ref{tab:theoloai} & \texttt{outputs/price\_distance\_corr.csv} (một phần); còn lại tính từ \texttt{melb\_data\_clean.csv} và \texttt{data/melb\_data.csv} & P07 \\
-Bảng~\ref{tab:thang} & \texttt{outputs/price\_by\_sale\_month.csv} & N11, P08 \\
+Phép 1 (trong văn bản) & \texttt{outputs/price\_summary.csv}; \texttt{outputs/melb\_data\_clean.csv} & L04, P01, P02 \\
+Bảng~\ref{tab:loainha}; Hình~\ref{fig:region}; Phép 4, 5 (trong văn bản) & \texttt{outputs/price\_by\_type.csv}, \texttt{price\_by\_region.csv}, \texttt{price\_by\_rooms.csv}, \texttt{top\_suburbs.csv} & N09, N10, P03--P06 \\
+Hình~\ref{fig:corr}; Bảng~\ref{tab:nhay} & \texttt{outputs/price\_distance\_corr.csv} (một phần); còn lại tính từ \texttt{melb\_data\_clean.csv} và \texttt{data/melb\_data.csv} & P07 \\
+Phép 7 (trong văn bản) & \texttt{outputs/price\_by\_sale\_month.csv} & N11, P08 \\
 Hình~\ref{fig:hist}--\ref{fig:corr} & \texttt{pipeline.py}: \texttt{create\_charts()}, ghi \texttt{outputs/01\_*.png}--\texttt{05\_*.png} & P09 \\
 Bảng~\ref{tab:validation}, \ref{tab:test} & \texttt{outputs/model\_validation\_metrics.csv}, \texttt{outputs/model\_metrics.csv} & M01 \\
+Bảng~\ref{tab:fitcheck} & \texttt{outputs/model\_fit\_check.csv} & --- \\
 Hình~\ref{fig:actual}, \ref{fig:residual} & \texttt{train\_model.py}, ghi \texttt{outputs/06\_*.png}, \texttt{07\_*.png} & M02 \\
 Bảng~\ref{tab:saiso-gia}, \ref{tab:saiso-loai} & \texttt{outputs/test\_predictions.csv} & M03--M05 \\
 Số trước/sau loại ngoại lai về mô hình (mục~\ref{sec:luuy}) & \texttt{outputs/doi\_chung/*.csv} so với \texttt{outputs/model\_*metrics.csv} & --- \\
