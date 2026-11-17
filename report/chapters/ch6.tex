@@ -1,6 +1,6 @@
 \chapter{Mô hình hồi quy dự đoán giá}\label{ch:mohinh}
 
-Chương này mô tả phần học máy do \texttt{train\_model.py} thực hiện: chọn đặc trưng, so sánh mô hình trên tập validation, đánh giá mô hình đã chọn trên tập test và phân tích sai số. Số đo mô hình lấy từ \texttt{outputs/model\_metrics.csv} và \texttt{outputs/model\_validation\_metrics.csv}; các số bổ sung (MAPE, sai số theo phân khúc) tính từ \texttt{outputs/test\_predictions.csv} bằng hàm \texttt{build\_model\_error\_metrics()} của \texttt{train\_model.py}, ghi vào \texttt{outputs/model\_error\_metrics.csv} và truy theo mã.
+Chương này áp dụng các thành phần đã giải thích ở Chương~\ref{ch:lythuyet} vào dữ liệu nhà Melbourne. Phần học máy do \texttt{train\_model.py} thực hiện: chọn đặc trưng, so sánh mô hình trên tập validation, đánh giá mô hình đã chọn trên tập test và phân tích sai số. Số đo mô hình lấy từ \texttt{outputs/model\_metrics.csv} và \texttt{outputs/model\_validation\_metrics.csv}; các số bổ sung (MAPE, sai số theo phân khúc) tính từ \texttt{outputs/test\_predictions.csv} bằng hàm \texttt{build\_model\_error\_metrics()} của \texttt{train\_model.py}, ghi vào \texttt{outputs/model\_error\_metrics.csv} và truy theo mã.
 
 \section{Thiết lập bài toán}\label{sec:thietlap}
 Biến mục tiêu là \texttt{Price} (AUD). Dữ liệu vào là \texttt{outputs/melb\_data\_clean.csv} (13,580 dòng). Danh sách đặc trưng là hai hằng \texttt{NUMERIC\_CANDIDATES} và \texttt{CATEGORICAL\_CANDIDATES} trong \texttt{train\_model.py}, gồm 23 đặc trưng:
