@@ -64,7 +64,7 @@ def build_estimator(regressor, numeric_features, categorical_features):
         ("model", regressor),
     ])
 
-# Giá nhà lệch phải, train theo log1p(Price) và dự đoán ngược lại bằng expm1.   
+    # Giá nhà lệch phải, train theo log1p(Price) và dự đoán ngược lại bằng expm1.   
     return TransformedTargetRegressor(
         regressor=pipeline,
         func=np.log1p,
@@ -78,6 +78,42 @@ def evaluate(y_true, y_pred):
         "RMSE_AUD": float(np.sqrt(mean_squared_error(y_true, y_pred))),
         "R2": float(r2_score(y_true, y_pred)),
     }
+
+
+# Một dòng của bảng kiểm tra quá khớp / dưới khớp: sai số trên tập train và trên tập chưa dùng để học.
+def build_fit_check_row(model_name, eval_set, train_metrics, eval_metrics):
+    return {
+        "Model": model_name,
+        "Eval_set": eval_set,
+        "MAE_train": train_metrics["MAE_AUD"],
+        "MAE_eval": eval_metrics["MAE_AUD"],
+        "RMSE_train": train_metrics["RMSE_AUD"],
+        "RMSE_eval": eval_metrics["RMSE_AUD"],
+        "R2_train": train_metrics["R2"],
+        "R2_eval": eval_metrics["R2"],
+    }
+
+
+# Gộp các dòng thành bảng và thêm tỷ lệ MAE_eval / MAE_train (gần 1: hai tập tương đương; lớn: có khoảng cách).
+def build_fit_check(rows):
+    fit_check = pd.DataFrame(rows)
+    fit_check["MAE_eval_chia_MAE_train"] = fit_check["MAE_eval"] / fit_check["MAE_train"]
+    return fit_check
+
+
+def print_fit_check(fit_check):
+    print("\n=== Kiem tra qua khop / duoi khop (sai so train so voi tap chua dung de hoc) ===")
+    print(fit_check.to_string(index=False, formatters={
+        "MAE_train": "{:,.0f}".format,
+        "MAE_eval": "{:,.0f}".format,
+        "RMSE_train": "{:,.0f}".format,
+        "RMSE_eval": "{:,.0f}".format,
+        "R2_train": "{:.4f}".format,
+        "R2_eval": "{:.4f}".format,
+        "MAE_eval_chia_MAE_train": "{:.2f}".format,
+    }))
+    print("Doc ket qua: ty le gan 1 va sai so van cao goi y duoi khop; ty le lon goi y co khoang cach qua khop.")
+    print("Sai so train cua Random Forest luon thap hon du lieu moi, nen chon mo hinh theo validation, khong theo sai so train.")
 
 
 # Hàm tổng hợp số đo sai số mà báo cáo trích (nhóm M); chỉ đọc kết quả đã có, không huấn luyện thêm
@@ -126,6 +162,33 @@ def build_model_error_metrics(validation_metrics, metrics, test_results, y_train
 
 
 
+def save_charts(y_test, best_predictions, best_name):
+    # Actual vs predicted chart.
+    fig, ax = plt.subplots(figsize=(7, 6))
+    ax.scatter(y_test, best_predictions, alpha=0.35, s=18)
+    lower = min(float(y_test.min()), float(np.min(best_predictions)))
+    upper = max(float(y_test.max()), float(np.max(best_predictions)))
+    ax.plot([lower, upper], [lower, upper], linestyle="--", color="red")
+    ax.set_title(f"Actual vs Predicted — {best_name}")
+    ax.set_xlabel("Actual Price (AUD)")
+    ax.set_ylabel("Predicted Price (AUD)")
+    fig.tight_layout()
+    fig.savefig(OUTPUT_DIR / "06_actual_vs_predicted.png", dpi=160)
+    plt.close(fig)
+
+    # Residual distribution chart 
+    residuals = y_test.to_numpy() - best_predictions
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.hist(residuals, bins=40, edgecolor="white")
+    ax.axvline(0, linestyle="--", color="red")
+    ax.set_title(f"Residual Distribution — {best_name}")
+    ax.set_xlabel("Residual (Actual - Predicted), AUD")
+    ax.set_ylabel("Number of records")
+    fig.tight_layout()
+    fig.savefig(OUTPUT_DIR / "07_residual_distribution.png", dpi=160)
+    plt.close(fig)
+
+
 def main():
     if not DATA_PATH.exists():
         raise FileNotFoundError(
@@ -136,7 +199,7 @@ def main():
     if TARGET not in df.columns:
         raise KeyError(f"Dataset khong co cot muc tieu {TARGET!r}.")
 
-# Loại bỏ các giá trị không hợp lệ, không impute biến mục tiêu, giữ Price > 0.
+    # Loại bỏ các giá trị không hợp lệ, không impute biến mục tiêu, giữ Price > 0.
     df[TARGET] = pd.to_numeric(df[TARGET], errors="coerce")
     df = df.loc[df[TARGET].notna() & (df[TARGET] > 0)].copy()
 
@@ -150,7 +213,7 @@ def main():
     X = df[feature_columns].copy()
     y = df[TARGET].astype(float).copy()
 
-# Chia test rieng ngay tu dau; validation chi dung de chon mo hinh.
+    # Chia test rieng ngay tu dau; validation chi dung de chon mo hinh.
     X_train_full, X_test, y_train_full, y_test = train_test_split(
         X, y, test_size=0.2, random_state=RANDOM_STATE
     )
@@ -176,42 +239,32 @@ def main():
         ),
     }
 
-# Chon mo hinh bang validation MAE, khong chon theo tap test.
+    # Chon mo hinh bang validation MAE, khong chon theo tap test.
     validation_rows = []
     fit_check_rows = []
     for name, estimator in models.items():
         print(f"Validation {name} ...")
         estimator.fit(X_train, y_train)
         val_prediction = estimator.predict(X_val)
-        validation_rows.append({"Model": name, **evaluate(y_val, val_prediction)})
-# Sai số trên chính tập train, đặt cạnh validation để kiểm tra quá khớp / dưới khớp.
-        train_metrics = evaluate(y_train, estimator.predict(X_train))
         val_metrics = evaluate(y_val, val_prediction)
-        fit_check_rows.append({
-            "Model": name, "Eval_set": "validation",
-            "MAE_train": train_metrics["MAE_AUD"], "MAE_eval": val_metrics["MAE_AUD"],
-            "RMSE_train": train_metrics["RMSE_AUD"], "RMSE_eval": val_metrics["RMSE_AUD"],
-            "R2_train": train_metrics["R2"], "R2_eval": val_metrics["R2"],
-        })
+        validation_rows.append({"Model": name, **val_metrics})
+        train_metrics = evaluate(y_train, estimator.predict(X_train))
+        fit_check_rows.append(build_fit_check_row(name, "validation", train_metrics, val_metrics))
 
     validation_metrics = pd.DataFrame(validation_rows).sort_values("MAE_AUD").reset_index(drop=True)
     best_name = str(validation_metrics.iloc[0]["Model"])
 
-# Refitting chi mo hinh da chon tren toan bo tap train.
-# Tap test chi dung de danh gia cuoi cung, khong dung chon mo hinh.
+    # Refitting chi mo hinh da chon tren toan bo tap train.
+    # Tap test chi dung de danh gia cuoi cung, khong dung chon mo hinh.
     best_model = models[best_name]
     print(f"Final fit and test evaluation: {best_name} ...")
     best_model.fit(X_train_full, y_train_full)
     best_predictions = best_model.predict(X_test)
     best_metrics = evaluate(y_test, best_predictions)
-# Mô hình đã chọn sau khi huấn luyện lại trên train gộp validation: sai số train gộp so với test.
     final_train_metrics = evaluate(y_train_full, best_model.predict(X_train_full))
-    fit_check_rows.append({
-        "Model": f"{best_name} (huấn luyện lại trên train gộp validation)", "Eval_set": "test",
-        "MAE_train": final_train_metrics["MAE_AUD"], "MAE_eval": best_metrics["MAE_AUD"],
-        "RMSE_train": final_train_metrics["RMSE_AUD"], "RMSE_eval": best_metrics["RMSE_AUD"],
-        "R2_train": final_train_metrics["R2"], "R2_eval": best_metrics["R2"],
-    })
+    fit_check_rows.append(build_fit_check_row(
+        f"{best_name} (huấn luyện lại trên train gộp validation)", "test", final_train_metrics, best_metrics
+    ))
 
     baseline = DummyRegressor(strategy="median")
     baseline.fit(X_train_full.iloc[:, [0]], y_train_full)
@@ -221,17 +274,14 @@ def main():
         {"Model": "Baseline_median", **evaluate(y_test, baseline_pred), "Selected_by_validation": False},
         {"Model": best_name, **best_metrics, "Selected_by_validation": True},
     ]).sort_values("MAE_AUD").reset_index(drop=True)
-    validation_metrics = pd.DataFrame(validation_rows).sort_values("MAE_AUD").reset_index(drop=True)
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
     validation_metrics.to_csv(
         OUTPUT_DIR / "model_validation_metrics.csv", index=False, encoding="utf-8-sig"
     )
 
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-# Cột *_eval là sai số trên tập chưa dùng để học (cột Eval_set cho biết là validation hay test).
-    fit_check = pd.DataFrame(fit_check_rows)
-    fit_check["MAE_eval_chia_MAE_train"] = fit_check["MAE_eval"] / fit_check["MAE_train"]
+    fit_check = build_fit_check(fit_check_rows)
     fit_check.to_csv(OUTPUT_DIR / "model_fit_check.csv", index=False, encoding="utf-8-sig")
 
     joblib.dump(best_model, MODEL_DIR / "best_pipeline.joblib")
@@ -267,30 +317,7 @@ def main():
     with (MODEL_DIR / "model_metadata.json").open("w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
 
-# Actual vs predicted chart.
-    fig, ax = plt.subplots(figsize=(7, 6))
-    ax.scatter(y_test, best_predictions, alpha=0.35, s=18)
-    lower = min(float(y_test.min()), float(np.min(best_predictions)))
-    upper = max(float(y_test.max()), float(np.max(best_predictions)))
-    ax.plot([lower, upper], [lower, upper], linestyle="--", color="red")
-    ax.set_title(f"Actual vs Predicted — {best_name}")
-    ax.set_xlabel("Actual Price (AUD)")
-    ax.set_ylabel("Predicted Price (AUD)")
-    fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / "06_actual_vs_predicted.png", dpi=160)
-    plt.close(fig)
-
-# Residual distribution chart 
-    residuals = y_test.to_numpy() - best_predictions
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.hist(residuals, bins=40, edgecolor="white")
-    ax.axvline(0, linestyle="--", color="red")
-    ax.set_title(f"Residual Distribution — {best_name}")
-    ax.set_xlabel("Residual (Actual - Predicted), AUD")
-    ax.set_ylabel("Number of records")
-    fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / "07_residual_distribution.png", dpi=160)
-    plt.close(fig)
+    save_charts(y_test, best_predictions, best_name)
 
     print("\n=== Model selection (validation set) ===")
     print(validation_metrics.to_string(index=False, formatters={
@@ -304,6 +331,7 @@ def main():
         "RMSE_AUD": "{:,.0f}".format,
         "R2": "{:.4f}".format,
     }))
+    print_fit_check(fit_check)
     print(f"\nModel selected by validation MAE: {best_name}")
     print(f"Saved model: {MODEL_DIR / 'best_pipeline.joblib'}")
     print(f"Saved metadata: {MODEL_DIR / 'model_metadata.json'}")
