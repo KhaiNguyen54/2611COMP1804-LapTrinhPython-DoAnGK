@@ -51,7 +51,7 @@ def test_print_fit_check_runs(capsys):
         {"MAE_AUD": 2.0, "RMSE_AUD": 3.0, "R2": 0.8},
     )
     tm.print_fit_check(tm.build_fit_check([row]))
-    assert "Kiem tra qua khop" in capsys.readouterr().out
+    assert "Overfitting / Underfitting" in capsys.readouterr().out
 
 
 def test_preprocessor_has_expected_branches():

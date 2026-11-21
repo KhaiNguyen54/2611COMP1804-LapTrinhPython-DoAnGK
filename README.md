@@ -19,7 +19,7 @@
 ├── outputs/                 # kết quả tạo ra khi chạy pipeline.py và train_model.py
 │   └── doi_chung/           # kết quả mô hình trước khi loại ngoại lai, để đối chiếu (có README riêng)
 ├── models/                  # tự tạo khi chạy train_model.py (không đưa lên Git)
-├── report/                  # báo cáo LaTeX (main.tex và chapters/)
+├── report/                  # báo cáo LaTeX (tệp `Báo cáo đồ án GK - Lập trình Python.tex` và thư mục chapters/)
 ├── tests/                   # kiểm thử tự động bằng pytest
 ├── pipeline.py              # kiểm tra, làm sạch, phân tích, vẽ 5 biểu đồ
 ├── train_model.py           # huấn luyện và đánh giá mô hình hồi quy
@@ -136,8 +136,8 @@ Thư mục `report/` chỉ chứa tài liệu LaTeX; hình và số liệu của
 
 ```powershell
 cd report
-xelatex main.tex
-xelatex main.tex
+xelatex "Báo cáo đồ án GK - Lập trình Python.tex"
+xelatex "Báo cáo đồ án GK - Lập trình Python.tex"
 ```
 
 Mỗi bảng, hình, số trong báo cáo có dòng "Nguồn" trỏ tới một tệp trong `outputs/` hoặc một mã trong `outputs/report_metrics.csv` (do `pipeline.py` ghi) và `outputs/model_error_metrics.csv` (do `train_model.py` ghi). `outputs/doi_chung/` là kết quả mô hình trước khi loại ngoại lai. Bảng đối chiếu ở Phụ lục B của báo cáo.
