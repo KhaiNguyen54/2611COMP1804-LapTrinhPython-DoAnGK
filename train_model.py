@@ -16,7 +16,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -100,9 +99,9 @@ def build_fit_check(rows):
     fit_check["MAE_eval_chia_MAE_train"] = fit_check["MAE_eval"] / fit_check["MAE_train"]
     return fit_check
 
-
+# Hàm in kết quả fit check
 def print_fit_check(fit_check):
-    print("\n=== Kiem tra qua khop / duoi khop (sai so train so voi tap chua dung de hoc) ===")
+    print("\n=== Kiem tra Overfitting / Underfitting (sai so train so voi tap chua dung de hoc) ===")
     print(fit_check.to_string(index=False, formatters={
         "MAE_train": "{:,.0f}".format,
         "MAE_eval": "{:,.0f}".format,
@@ -112,8 +111,7 @@ def print_fit_check(fit_check):
         "R2_eval": "{:.4f}".format,
         "MAE_eval_chia_MAE_train": "{:.2f}".format,
     }))
-    print("Doc ket qua: ty le gan 1 va sai so van cao goi y duoi khop; ty le lon goi y co khoang cach qua khop.")
-    print("Sai so train cua Random Forest luon thap hon du lieu moi, nen chon mo hinh theo validation, khong theo sai so train.")
+
 
 
 # Hàm tổng hợp số đo sai số mà báo cáo trích (nhóm M); chỉ đọc kết quả đã có, không huấn luyện thêm
@@ -188,7 +186,7 @@ def save_charts(y_test, best_predictions, best_name):
     fig.savefig(OUTPUT_DIR / "07_residual_distribution.png", dpi=160)
     plt.close(fig)
 
-
+# Hàm main huấn luyện model
 def main():
     if not DATA_PATH.exists():
         raise FileNotFoundError(

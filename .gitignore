@@ -228,7 +228,7 @@ ml_pipeline/.env
 .pytest_cache/
 .env
 
-# Báo cáo LaTeX: tệp sinh ra khi biên dịch (không đưa PDF lên repo)
+# Báo cáo LaTeX: tệp sinh ra khi biên dịch 
 report/*.aux
 report/*.log
 report/*.toc
@@ -239,5 +239,4 @@ report/*.xdv
 report/*.fls
 report/*.fdb_latexmk
 report/*.synctex.gz
-report/*.pdf
 report/.texbuild/

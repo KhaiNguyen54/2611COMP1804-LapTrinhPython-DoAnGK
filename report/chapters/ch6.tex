@@ -113,7 +113,7 @@ Random Forest, huấn luyện lại & test & 73,066 & 156,203 & 2.14 & 0.940 & 0
 
 \paragraph{Random Forest: có khoảng cách quá khớp.} MAE train (75,477) bằng khoảng một nửa MAE validation (154,865) và $R^2$ giảm từ 0.935 xuống 0.815. Cần đọc thận trọng: mỗi cây học trên chính các dòng train nên sai số train của rừng luôn thấp hơn dữ liệu mới, vì vậy khoảng cách chỉ nói rằng mô hình còn phương sai, không nói rằng mô hình kém. Căn cứ để chọn vẫn là sai số validation, thấp hơn Ridge 33.0\% (\bm{M01}). Sai số test (156,203) sát validation (154,865) nên việc chọn mô hình không gây lệch lớn.
 
-\paragraph{Hướng cải thiện.} Giảm phương sai bằng cách tăng \texttt{min\_samples\_leaf}, giảm \texttt{max\_features} hoặc giới hạn \texttt{max\_depth}, chọn giá trị bằng kiểm định chéo (\texttt{GridSearchCV}); dùng sai số out-of-bag (\texttt{oob\_score}) hoặc \texttt{learning\_curve} để đánh giá công bằng hơn sai số train. Báo cáo chưa thực hiện các bước này. Ridge ở môi trường chạy kiểm tra này cho MAE validation 231,137, lệch 0.01\% so với 231,160 ở Bảng~\ref{tab:validation} do khác phiên bản thư viện; kết luận không đổi.
+\paragraph{Hướng cải thiện.} Giảm phương sai bằng cách tăng \texttt{min\_samples\_leaf}, giảm \texttt{max\_features} hoặc giới hạn \texttt{max\_depth}, chọn giá trị bằng kiểm định chéo (\texttt{GridSearchCV}); dùng sai số out-of-bag (\texttt{oob\_score}) hoặc \texttt{learning\_curve} để đánh giá công bằng hơn sai số train. Ridge ở môi trường chạy kiểm tra cho MAE validation 231,137, lệch 0.01\% so với 231,160 ở Bảng~\ref{tab:validation} nên kết luận không đổi.
 
 \section{Phân khúc dự đoán kém}\label{sec:phankhuc}
 ``Lệch trung bình'' là trung bình của (thực tế $-$ dự đoán); dương nghĩa là dự đoán thấp hơn thực tế.
