@@ -1,0 +1,10 @@
+# Phiên bản đã dùng để chạy lại pipeline.py, train_model.py và pytest (Python 3.13).
+# Dùng khi cần tái lập đúng số liệu: python -m pip install -r requirements-lock.txt
+pandas==3.0.5
+numpy==2.5.3
+matplotlib==3.11.2
+seaborn==0.13.2
+scikit-learn==1.9.1
+scipy==1.18.1
+joblib==1.6.0
+pytest==9.1.1
