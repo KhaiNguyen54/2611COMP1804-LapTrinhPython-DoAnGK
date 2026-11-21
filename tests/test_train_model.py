@@ -8,7 +8,7 @@ import train_model as tm
 
 OUT = tm.OUTPUT_DIR
 
-
+# Kiểm tra chia dữ liệu theo tỷ lệ 64% train / 16% val / 20% test và đảm bảo các tập không bị trùng lặp.
 def test_split_sizes_are_64_16_20():
     idx = np.arange(13_580)
     full, test = train_test_split(idx, test_size=0.2, random_state=tm.RANDOM_STATE)
@@ -16,7 +16,7 @@ def test_split_sizes_are_64_16_20():
     assert (len(train), len(val), len(test)) == (8_691, 2_173, 2_716)
     assert len(set(train) | set(val) | set(test)) == 13_580  # ba tập không giao nhau
 
-
+# Kiểm tra hàm evaluate tính đúng chỉ số khi dự đoán hoàn hảo (MAE=0, R2=1) và khi lệch cố định 10 đơn vị.
 def test_evaluate_perfect_and_known_values():
     y = np.array([100.0, 200.0, 300.0])
     perfect = tm.evaluate(y, y)
@@ -25,13 +25,13 @@ def test_evaluate_perfect_and_known_values():
     assert m["MAE_AUD"] == pytest.approx(10.0)
     assert m["RMSE_AUD"] == pytest.approx(10.0)
 
-
+# Dự đoán bằng giá trị trung vị (median) trên dữ liệu lệch phải phải cho điểm R2 <= 0.
 def test_evaluate_median_baseline_has_non_positive_r2():
     y = np.array([1.0, 2.0, 3.0, 100.0])
     pred = np.full_like(y, np.median(y))
     assert tm.evaluate(y, pred)["R2"] <= 0
 
-
+# Kiểm tra bảng đánh giá độ khớp (fit check) có đủ tên cột và tính đúng tỷ lệ MAE_eval / MAE_train.
 def test_build_fit_check_ratio_and_columns():
     train = {"MAE_AUD": 100.0, "RMSE_AUD": 150.0, "R2": 0.9}
     ev = {"MAE_AUD": 250.0, "RMSE_AUD": 400.0, "R2": 0.7}
@@ -43,7 +43,7 @@ def test_build_fit_check_ratio_and_columns():
         "R2_train", "R2_eval", "MAE_eval_chia_MAE_train",
     ]
 
-
+# Đảm bảo hàm print_fit_check chạy thành công và in ra tiêu đề "Overfitting / Underfitting".
 def test_print_fit_check_runs(capsys):
     row = tm.build_fit_check_row(
         "M", "test",
@@ -53,19 +53,19 @@ def test_print_fit_check_runs(capsys):
     tm.print_fit_check(tm.build_fit_check([row]))
     assert "Overfitting / Underfitting" in capsys.readouterr().out
 
-
+# Kiểm tra bộ tiền xử lý có đủ 2 nhánh (numeric, categorical) và loại bỏ (drop) các cột thừa.
 def test_preprocessor_has_expected_branches():
     pre = tm.build_preprocessor(["Rooms"], ["Type"])
     assert [name for name, _, _ in pre.transformers] == ["numeric", "categorical"]
     assert pre.remainder == "drop"
 
-
+# Đảm bảo danh sách biến đầu vào có đủ 23 cột, không trùng lặp và không chứa biến mục tiêu (TARGET).
 def test_feature_lists_have_no_target_or_overlap():
     assert tm.TARGET not in tm.NUMERIC_CANDIDATES + tm.CATEGORICAL_CANDIDATES
     assert not set(tm.NUMERIC_CANDIDATES) & set(tm.CATEGORICAL_CANDIDATES)
     assert len(tm.NUMERIC_CANDIDATES) + len(tm.CATEGORICAL_CANDIDATES) == 23
 
-
+# Kiểm tra file model_fit_check.csv đã xuất ra có đủ 3 dòng, tính đúng tỷ lệ và Ridge bị underfit (< 1.1).
 def test_committed_fit_check_is_consistent():
     table = pd.read_csv(OUT / "model_fit_check.csv", encoding="utf-8-sig")
     assert len(table) == 3
@@ -74,7 +74,7 @@ def test_committed_fit_check_is_consistent():
     ridge = table[table["Model"] == "Ridge"].iloc[0]
     assert ridge["MAE_eval_chia_MAE_train"] < 1.1  # dưới khớp: hai sai số gần bằng nhau
 
-
+# Đối chiếu chỉ số MAE trên tập validation giữa file metrics và file fit_check phải khớp nhau.
 def test_committed_validation_matches_fit_check():
     val = pd.read_csv(OUT / "model_validation_metrics.csv", encoding="utf-8-sig").set_index("Model")
     fit = pd.read_csv(OUT / "model_fit_check.csv", encoding="utf-8-sig")

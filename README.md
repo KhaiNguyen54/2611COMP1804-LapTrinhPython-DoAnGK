@@ -15,17 +15,30 @@
 ```text
 2611COMP1804-LapTrinhPython-DoAnGK/
 ├── data/
-│   └── melb_data.csv        # dữ liệu gốc, không sửa tay
-├── outputs/                 # kết quả tạo ra khi chạy pipeline.py và train_model.py
-│   └── doi_chung/           # kết quả mô hình trước khi loại ngoại lai, để đối chiếu (có README riêng)
-├── models/                  # tự tạo khi chạy train_model.py (không đưa lên Git)
-├── report/                  # báo cáo LaTeX (tệp `Báo cáo đồ án GK - Lập trình Python.tex` và thư mục chapters/)
-├── tests/                   # kiểm thử tự động bằng pytest
-├── pipeline.py              # kiểm tra, làm sạch, phân tích, vẽ 5 biểu đồ
-├── train_model.py           # huấn luyện và đánh giá mô hình hồi quy
-├── melbourne_data_analysis_pipeline.ipynb  # notebook triển khai theo từng bước
-├── requirements.txt         # thư viện cần cài (khoảng phiên bản)
-├── requirements-lock.txt    # phiên bản chính xác đã dùng để chạy lại
+│   └── melb_data.csv
+├── outputs/
+│   ├── doi_chung/
+│   ├── 01_price_distribution.png
+│   ├── 02_price_by_type_boxplot.png
+│   ├── 03_median_price_by_region.png
+│   ├── 04_price_vs_distance.png
+│   ├── 05_correlation_heatmap.png
+│   ├── 06_actual_vs_predicted.png
+│   ├── 07_residual_distribution.png
+│   ├── 08_missing_by_column.png
+│   ├── 09_cleaning_rule_effect.png
+│   ├── *.csv
+├── models/
+├── report/
+│   ├── Báo cáo đồ án GK - Lập trình Python.tex
+│   ├── chapters/
+│   └── screenshots/
+├── tests/
+├── pipeline.py
+├── train_model.py
+├── melbourne_data_analysis_pipeline.ipynb
+├── requirements.txt
+├── requirements-lock.txt
 ├── pytest.ini
 └── README.md
 ```
