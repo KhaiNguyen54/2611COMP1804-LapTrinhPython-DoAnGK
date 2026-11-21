@@ -1,4 +1,4 @@
-"""Kiểm thử các hàm của train_model.py (không huấn luyện mô hình để chạy nhanh)."""
+# Kiểm thử các hàm của train_model.py (không huấn luyện mô hình để chạy nhanh).
 import numpy as np
 import pandas as pd
 import pytest

@@ -1,4 +1,4 @@
-"""Kiểm thử bước làm sạch dữ liệu trong pipeline.py (không ghi tệp, không huấn luyện)."""
+# Kiểm thử bước làm sạch dữ liệu trong pipeline.py (không ghi tệp, không huấn luyện).
 import numpy as np
 import pandas as pd
 import pytest
